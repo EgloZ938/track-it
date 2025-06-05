@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '@/contexts/AuthContext';
 
 type MenuItem = {
     icon: string;
@@ -11,9 +12,29 @@ type MenuItem = {
 };
 
 export default function ProfileScreen() {
+    const { user, logout } = useAuth();
+
+    const handleLogout = () => {
+        Alert.alert(
+            'Déconnexion',
+            'Êtes-vous sûr de vouloir vous déconnecter ?',
+            [
+                {
+                    text: 'Annuler',
+                    style: 'cancel',
+                },
+                {
+                    text: 'Déconnexion',
+                    style: 'destructive',
+                    onPress: logout,
+                },
+            ]
+        );
+    };
+
     const menuItems: MenuItem[] = [
-        { icon: 'person', label: 'Nom d\'utilisateur', value: 'Utilisateur Test' },
-        { icon: 'mail', label: 'Email', value: 'user@example.com' },
+        { icon: 'person', label: 'Nom d\'utilisateur', value: `${user?.firstName} ${user?.lastName}` },
+        { icon: 'mail', label: 'Email', value: user?.email },
         { icon: 'stats-chart', label: 'Signalements envoyés', value: '12' },
         { icon: 'checkmark-circle', label: 'Problèmes résolus', value: '8' },
     ];
@@ -34,10 +55,16 @@ export default function ProfileScreen() {
                     {/* Avatar et infos principales */}
                     <View style={styles.profileCard}>
                         <View style={styles.avatar}>
-                            <Ionicons name="person" size={48} color="white" />
+                            <Text style={styles.avatarText}>
+                                {user?.firstName?.[0]}{user?.lastName?.[0]}
+                            </Text>
                         </View>
-                        <Text style={styles.userName}>Utilisateur Test</Text>
-                        <Text style={styles.memberSince}>Membre depuis janvier 2025</Text>
+                        <Text style={styles.userName}>
+                            {user?.firstName} {user?.lastName}
+                        </Text>
+                        <Text style={styles.memberSince}>
+                            Membre depuis {new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
+                        </Text>
                     </View>
 
                     {/* Statistiques */}
@@ -81,7 +108,8 @@ export default function ProfileScreen() {
                     </View>
 
                     {/* Déconnexion */}
-                    <TouchableOpacity style={styles.logoutButton}>
+                    <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+                        <Ionicons name="log-out" size={20} color="white" style={{ marginRight: 8 }} />
                         <Text style={styles.logoutButtonText}>Se déconnecter</Text>
                     </TouchableOpacity>
                 </View>
@@ -131,6 +159,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: 16,
+    },
+    avatarText: {
+        color: 'white',
+        fontSize: 36,
+        fontWeight: 'bold',
     },
     userName: {
         fontSize: 20,
@@ -191,10 +224,12 @@ const styles = StyleSheet.create({
         paddingVertical: 16,
         borderRadius: 8,
         marginBottom: 32,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     logoutButtonText: {
         color: 'white',
-        textAlign: 'center',
         fontWeight: '600',
         fontSize: 16,
     },
