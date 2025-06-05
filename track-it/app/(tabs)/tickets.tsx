@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -42,9 +42,9 @@ const mockTickets: Ticket[] = [
 ];
 
 const statusConfig = {
-    pending: { label: 'En attente', color: 'bg-yellow-500', icon: 'time' },
-    in_progress: { label: 'En cours', color: 'bg-blue-500', icon: 'construct' },
-    resolved: { label: 'Résolu', color: 'bg-green-500', icon: 'checkmark-circle' },
+    pending: { label: 'En attente', color: '#F59E0B', icon: 'time' },
+    in_progress: { label: 'En cours', color: '#3B82F6', icon: 'construct' },
+    resolved: { label: 'Résolu', color: '#10B981', icon: 'checkmark-circle' },
 };
 
 const typeIcons = {
@@ -57,23 +57,28 @@ const typeIcons = {
 };
 
 export default function TicketsScreen() {
+    const getStatusStyle = (status: TicketStatus) => ({
+        ...styles.statusBadge,
+        backgroundColor: statusConfig[status].color,
+    });
+
     return (
-        <SafeAreaView className="flex-1 bg-gray-50">
-            <ScrollView className="flex-1 px-4">
-                <View className="py-6">
-                    <Text className="text-3xl font-bold text-gray-900 mb-2">Mes signalements</Text>
-                    <Text className="text-gray-600">Suivez l'état de vos signalements</Text>
+        <SafeAreaView style={styles.container}>
+            <ScrollView style={styles.scrollView}>
+                <View style={styles.header}>
+                    <Text style={styles.title}>Mes signalements</Text>
+                    <Text style={styles.subtitle}>Suivez l'état de vos signalements</Text>
                 </View>
 
-                <View className="space-y-4 pb-4">
+                <View style={styles.ticketsContainer}>
                     {mockTickets.map((ticket) => (
                         <TouchableOpacity
                             key={ticket.id}
-                            className="bg-white rounded-lg p-4 shadow-sm"
+                            style={styles.ticketCard}
                         >
-                            <View className="flex-row items-start justify-between mb-2">
-                                <View className="flex-row items-center">
-                                    <View className="bg-gray-100 p-2 rounded-full mr-3">
+                            <View style={styles.ticketHeader}>
+                                <View style={styles.ticketInfo}>
+                                    <View style={styles.iconContainer}>
                                         <Ionicons
                                             name={typeIcons[ticket.type] as any}
                                             size={20}
@@ -81,26 +86,26 @@ export default function TicketsScreen() {
                                         />
                                     </View>
                                     <View>
-                                        <Text className="font-semibold text-gray-900">{ticket.line}</Text>
-                                        <Text className="text-sm text-gray-500">{ticket.date}</Text>
+                                        <Text style={styles.lineName}>{ticket.line}</Text>
+                                        <Text style={styles.date}>{ticket.date}</Text>
                                     </View>
                                 </View>
-                                <View className={`px-3 py-1 rounded-full ${statusConfig[ticket.status].color}`}>
-                                    <Text className="text-white text-xs font-medium">
+                                <View style={getStatusStyle(ticket.status)}>
+                                    <Text style={styles.statusText}>
                                         {statusConfig[ticket.status].label}
                                     </Text>
                                 </View>
                             </View>
 
-                            <Text className="text-gray-700 mb-3">{ticket.description}</Text>
+                            <Text style={styles.description}>{ticket.description}</Text>
 
-                            <View className="flex-row items-center">
+                            <View style={styles.ticketFooter}>
                                 <Ionicons
                                     name={statusConfig[ticket.status].icon as any}
                                     size={16}
                                     color="#6B7280"
                                 />
-                                <Text className="ml-1 text-sm text-gray-600">
+                                <Text style={styles.footerText}>
                                     Dernière mise à jour: {ticket.date}
                                 </Text>
                             </View>
@@ -111,3 +116,93 @@ export default function TicketsScreen() {
         </SafeAreaView>
     );
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#F9FAFB',
+    },
+    scrollView: {
+        flex: 1,
+        paddingHorizontal: 16,
+    },
+    header: {
+        paddingVertical: 24,
+    },
+    title: {
+        fontSize: 30,
+        fontWeight: 'bold',
+        color: '#111827',
+        marginBottom: 8,
+    },
+    subtitle: {
+        fontSize: 16,
+        color: '#6B7280',
+    },
+    ticketsContainer: {
+        paddingBottom: 16,
+    },
+    ticketCard: {
+        backgroundColor: 'white',
+        borderRadius: 8,
+        padding: 16,
+        marginBottom: 16,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 1,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+        elevation: 2,
+    },
+    ticketHeader: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        justifyContent: 'space-between',
+        marginBottom: 8,
+    },
+    ticketInfo: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    iconContainer: {
+        backgroundColor: '#F3F4F6',
+        padding: 8,
+        borderRadius: 20,
+        marginRight: 12,
+    },
+    lineName: {
+        fontWeight: '600',
+        color: '#111827',
+        fontSize: 16,
+    },
+    date: {
+        fontSize: 14,
+        color: '#6B7280',
+    },
+    statusBadge: {
+        paddingHorizontal: 12,
+        paddingVertical: 4,
+        borderRadius: 16,
+    },
+    statusText: {
+        color: 'white',
+        fontSize: 12,
+        fontWeight: '500',
+    },
+    description: {
+        color: '#374151',
+        marginBottom: 12,
+        lineHeight: 20,
+    },
+    ticketFooter: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    footerText: {
+        marginLeft: 4,
+        fontSize: 14,
+        color: '#6B7280',
+    },
+});

@@ -1,25 +1,75 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function MapScreen() {
     return (
-        <SafeAreaView className="flex-1 bg-gray-50">
-            <View className="flex-1 items-center justify-center px-4">
-                <View className="bg-white p-8 rounded-lg shadow-sm items-center">
+        <SafeAreaView style={styles.container}>
+            <View style={styles.centerContent}>
+                <View style={styles.card}>
                     <Ionicons name="map" size={80} color="#9CA3AF" />
-                    <Text className="text-xl font-semibold text-gray-900 mt-4 mb-2">
+                    <Text style={styles.title}>
                         Carte des signalements
                     </Text>
-                    <Text className="text-gray-600 text-center mb-6">
+                    <Text style={styles.description}>
                         La carte interactive sera disponible prochainement
                     </Text>
-                    <TouchableOpacity className="bg-primary px-6 py-3 rounded-lg">
-                        <Text className="text-white font-medium">Activer les notifications</Text>
+                    <TouchableOpacity style={styles.button}>
+                        <Text style={styles.buttonText}>Activer les notifications</Text>
                     </TouchableOpacity>
                 </View>
             </View>
         </SafeAreaView>
     );
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#F9FAFB',
+    },
+    centerContent: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: 16,
+    },
+    card: {
+        backgroundColor: 'white',
+        padding: 32,
+        borderRadius: 8,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 1,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+        elevation: 2,
+    },
+    title: {
+        fontSize: 20,
+        fontWeight: '600',
+        color: '#111827',
+        marginTop: 16,
+        marginBottom: 8,
+    },
+    description: {
+        color: '#6B7280',
+        textAlign: 'center',
+        marginBottom: 24,
+        lineHeight: 20,
+    },
+    button: {
+        backgroundColor: '#0a7ea4',
+        paddingHorizontal: 24,
+        paddingVertical: 12,
+        borderRadius: 8,
+    },
+    buttonText: {
+        color: 'white',
+        fontWeight: '500',
+    },
+});

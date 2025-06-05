@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, Alert, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
@@ -12,12 +12,12 @@ type ProblemType = {
 };
 
 const problemTypes: ProblemType[] = [
-  { id: 'cleanliness', label: 'Propreté', icon: 'trash', color: 'bg-yellow-500' },
-  { id: 'equipment', label: 'Équipement défectueux', icon: 'construct', color: 'bg-red-500' },
-  { id: 'overcrowding', label: 'Surcharge', icon: 'people', color: 'bg-orange-500' },
-  { id: 'delay', label: 'Retard', icon: 'time', color: 'bg-blue-500' },
-  { id: 'safety', label: 'Sécurité', icon: 'shield-checkmark', color: 'bg-purple-500' },
-  { id: 'other', label: 'Autre', icon: 'ellipsis-horizontal', color: 'bg-gray-500' },
+  { id: 'cleanliness', label: 'Propreté', icon: 'trash', color: '#F59E0B' },
+  { id: 'equipment', label: 'Équipement défectueux', icon: 'construct', color: '#DC2626' },
+  { id: 'overcrowding', label: 'Surcharge', icon: 'people', color: '#F97316' },
+  { id: 'delay', label: 'Retard', icon: 'time', color: '#3B82F6' },
+  { id: 'safety', label: 'Sécurité', icon: 'shield-checkmark', color: '#8B5CF6' },
+  { id: 'other', label: 'Autre', icon: 'ellipsis-horizontal', color: '#6B7280' },
 ];
 
 export default function HomeScreen() {
@@ -58,32 +58,41 @@ export default function HomeScreen() {
     setLocation(null);
   };
 
+  const getSelectedButtonStyle = (typeId: string) => {
+    const type = problemTypes.find(t => t.id === typeId);
+    return selectedType === typeId
+      ? { ...styles.problemButton, backgroundColor: type?.color || '#0a7ea4' }
+      : styles.problemButton;
+  };
+
+  const getSelectedTextStyle = (typeId: string) => {
+    return selectedType === typeId ? styles.problemButtonTextSelected : styles.problemButtonText;
+  };
+
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
-      <ScrollView className="flex-1 px-4">
-        <View className="py-6">
-          <Text className="text-3xl font-bold text-gray-900 mb-2">Signaler un problème</Text>
-          <Text className="text-gray-600">Aidez-nous à améliorer votre expérience</Text>
+    <SafeAreaView style={styles.container}>
+      <ScrollView style={styles.scrollView}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Signaler un problème</Text>
+          <Text style={styles.subtitle}>Aidez-nous à améliorer votre expérience</Text>
         </View>
 
         {/* Type de problème */}
-        <View className="mb-6">
-          <Text className="text-lg font-semibold text-gray-900 mb-3">Type de problème</Text>
-          <View className="flex-row flex-wrap gap-3">
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Type de problème</Text>
+          <View style={styles.problemTypesContainer}>
             {problemTypes.map((type) => (
               <TouchableOpacity
                 key={type.id}
                 onPress={() => setSelectedType(type.id)}
-                className={`flex-row items-center px-4 py-3 rounded-lg ${selectedType === type.id ? type.color : 'bg-white border border-gray-300'
-                  }`}
+                style={getSelectedButtonStyle(type.id)}
               >
                 <Ionicons
                   name={type.icon as any}
                   size={20}
                   color={selectedType === type.id ? 'white' : '#6B7280'}
                 />
-                <Text className={`ml-2 font-medium ${selectedType === type.id ? 'text-white' : 'text-gray-700'
-                  }`}>
+                <Text style={getSelectedTextStyle(type.id)}>
                   {type.label}
                 </Text>
               </TouchableOpacity>
@@ -92,19 +101,20 @@ export default function HomeScreen() {
         </View>
 
         {/* Ligne de transport */}
-        <View className="mb-6">
-          <Text className="text-lg font-semibold text-gray-900 mb-3">Ligne de transport</Text>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Ligne de transport</Text>
           <TextInput
             value={transportLine}
             onChangeText={setTransportLine}
             placeholder="Ex: Ligne 1, RER A, Bus 95..."
-            className="bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-900"
+            style={styles.textInput}
+            placeholderTextColor="#9CA3AF"
           />
         </View>
 
         {/* Description */}
-        <View className="mb-6">
-          <Text className="text-lg font-semibold text-gray-900 mb-3">Description</Text>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Description</Text>
           <TextInput
             value={description}
             onChangeText={setDescription}
@@ -112,20 +122,21 @@ export default function HomeScreen() {
             multiline
             numberOfLines={4}
             textAlignVertical="top"
-            className="bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-900 min-h-[100px]"
+            style={[styles.textInput, styles.textArea]}
+            placeholderTextColor="#9CA3AF"
           />
         </View>
 
         {/* Localisation */}
-        <View className="mb-6">
-          <Text className="text-lg font-semibold text-gray-900 mb-3">Localisation</Text>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Localisation</Text>
           <TouchableOpacity
             onPress={getLocation}
-            className="bg-white border border-gray-300 rounded-lg px-4 py-3 flex-row items-center justify-between"
+            style={styles.locationButton}
           >
-            <View className="flex-row items-center">
+            <View style={styles.locationButtonContent}>
               <Ionicons name="location" size={20} color="#6B7280" />
-              <Text className="ml-2 text-gray-700">
+              <Text style={styles.locationButtonText}>
                 {location ? 'Position capturée' : 'Capturer ma position'}
               </Text>
             </View>
@@ -136,9 +147,9 @@ export default function HomeScreen() {
         {/* Bouton soumettre */}
         <TouchableOpacity
           onPress={handleSubmit}
-          className="bg-primary py-4 rounded-lg mb-8"
+          style={styles.submitButton}
         >
-          <Text className="text-white text-center font-semibold text-lg">
+          <Text style={styles.submitButtonText}>
             Envoyer le signalement
           </Text>
         </TouchableOpacity>
@@ -146,3 +157,108 @@ export default function HomeScreen() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F9FAFB',
+  },
+  scrollView: {
+    flex: 1,
+    paddingHorizontal: 16,
+  },
+  header: {
+    paddingVertical: 24,
+  },
+  title: {
+    fontSize: 30,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#6B7280',
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 12,
+  },
+  problemTypesContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  problemButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
+    backgroundColor: 'white',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    marginBottom: 8,
+  },
+  problemButtonText: {
+    marginLeft: 8,
+    fontWeight: '500',
+    color: '#374151',
+  },
+  problemButtonTextSelected: {
+    marginLeft: 8,
+    fontWeight: '500',
+    color: 'white',
+  },
+  textInput: {
+    backgroundColor: 'white',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: '#111827',
+  },
+  textArea: {
+    minHeight: 100,
+    textAlignVertical: 'top',
+  },
+  locationButton: {
+    backgroundColor: 'white',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  locationButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  locationButtonText: {
+    marginLeft: 8,
+    color: '#374151',
+    fontSize: 16,
+  },
+  submitButton: {
+    backgroundColor: '#0a7ea4',
+    paddingVertical: 16,
+    borderRadius: 8,
+    marginBottom: 32,
+  },
+  submitButtonText: {
+    color: 'white',
+    textAlign: 'center',
+    fontWeight: '600',
+    fontSize: 18,
+  },
+});
