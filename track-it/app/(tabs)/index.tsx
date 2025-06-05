@@ -1,75 +1,148 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import * as Location from 'expo-location';
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+type ProblemType = {
+  id: string;
+  label: string;
+  icon: string;
+  color: string;
+};
+
+const problemTypes: ProblemType[] = [
+  { id: 'cleanliness', label: 'Propreté', icon: 'trash', color: 'bg-yellow-500' },
+  { id: 'equipment', label: 'Équipement défectueux', icon: 'construct', color: 'bg-red-500' },
+  { id: 'overcrowding', label: 'Surcharge', icon: 'people', color: 'bg-orange-500' },
+  { id: 'delay', label: 'Retard', icon: 'time', color: 'bg-blue-500' },
+  { id: 'safety', label: 'Sécurité', icon: 'shield-checkmark', color: 'bg-purple-500' },
+  { id: 'other', label: 'Autre', icon: 'ellipsis-horizontal', color: 'bg-gray-500' },
+];
 
 export default function HomeScreen() {
+  const [selectedType, setSelectedType] = useState<string>('');
+  const [description, setDescription] = useState('');
+  const [transportLine, setTransportLine] = useState('');
+  const [location, setLocation] = useState<Location.LocationObject | null>(null);
+
+  const getLocation = async () => {
+    let { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission refusée', 'Impossible d\'accéder à votre localisation');
+      return;
+    }
+
+    let location = await Location.getCurrentPositionAsync({});
+    setLocation(location);
+  };
+
+  const handleSubmit = () => {
+    if (!selectedType || !description || !transportLine) {
+      Alert.alert('Erreur', 'Veuillez remplir tous les champs');
+      return;
+    }
+
+    // TODO: Envoyer le signalement au backend
+    Alert.alert(
+      'Succès',
+      'Votre signalement a été envoyé avec succès',
+      [{ text: 'OK', onPress: resetForm }]
+    );
+  };
+
+  const resetForm = () => {
+    setSelectedType('');
+    setDescription('');
+    setTransportLine('');
+    setLocation(null);
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome !</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <SafeAreaView className="flex-1 bg-gray-50">
+      <ScrollView className="flex-1 px-4">
+        <View className="py-6">
+          <Text className="text-3xl font-bold text-gray-900 mb-2">Signaler un problème</Text>
+          <Text className="text-gray-600">Aidez-nous à améliorer votre expérience</Text>
+        </View>
+
+        {/* Type de problème */}
+        <View className="mb-6">
+          <Text className="text-lg font-semibold text-gray-900 mb-3">Type de problème</Text>
+          <View className="flex-row flex-wrap gap-3">
+            {problemTypes.map((type) => (
+              <TouchableOpacity
+                key={type.id}
+                onPress={() => setSelectedType(type.id)}
+                className={`flex-row items-center px-4 py-3 rounded-lg ${selectedType === type.id ? type.color : 'bg-white border border-gray-300'
+                  }`}
+              >
+                <Ionicons
+                  name={type.icon as any}
+                  size={20}
+                  color={selectedType === type.id ? 'white' : '#6B7280'}
+                />
+                <Text className={`ml-2 font-medium ${selectedType === type.id ? 'text-white' : 'text-gray-700'
+                  }`}>
+                  {type.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Ligne de transport */}
+        <View className="mb-6">
+          <Text className="text-lg font-semibold text-gray-900 mb-3">Ligne de transport</Text>
+          <TextInput
+            value={transportLine}
+            onChangeText={setTransportLine}
+            placeholder="Ex: Ligne 1, RER A, Bus 95..."
+            className="bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-900"
+          />
+        </View>
+
+        {/* Description */}
+        <View className="mb-6">
+          <Text className="text-lg font-semibold text-gray-900 mb-3">Description</Text>
+          <TextInput
+            value={description}
+            onChangeText={setDescription}
+            placeholder="Décrivez le problème en détail..."
+            multiline
+            numberOfLines={4}
+            textAlignVertical="top"
+            className="bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-900 min-h-[100px]"
+          />
+        </View>
+
+        {/* Localisation */}
+        <View className="mb-6">
+          <Text className="text-lg font-semibold text-gray-900 mb-3">Localisation</Text>
+          <TouchableOpacity
+            onPress={getLocation}
+            className="bg-white border border-gray-300 rounded-lg px-4 py-3 flex-row items-center justify-between"
+          >
+            <View className="flex-row items-center">
+              <Ionicons name="location" size={20} color="#6B7280" />
+              <Text className="ml-2 text-gray-700">
+                {location ? 'Position capturée' : 'Capturer ma position'}
+              </Text>
+            </View>
+            {location && <Ionicons name="checkmark-circle" size={20} color="#10B981" />}
+          </TouchableOpacity>
+        </View>
+
+        {/* Bouton soumettre */}
+        <TouchableOpacity
+          onPress={handleSubmit}
+          className="bg-primary py-4 rounded-lg mb-8"
+        >
+          <Text className="text-white text-center font-semibold text-lg">
+            Envoyer le signalement
+          </Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-});
