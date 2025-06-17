@@ -1,6 +1,29 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 
-const API_URL = 'http://localhost:3000/api';
+const getAPIUrl = () => {
+    if (!__DEV__) {
+        return 'https://prod-server.com/api';
+    }
+
+    switch (Platform.OS) {
+        case 'web':
+            return 'http://localhost:3000/api';
+
+        case 'ios':
+        case 'android':
+            return 'http://172.20.10.3:3000/api';
+
+        default:
+            // Fallback
+            return 'http://localhost:3000/api';
+    }
+};
+
+const API_URL = getAPIUrl();
+
+// Log pour debug
+console.log(`🌐 Configuration API pour ${Platform.OS}:`, API_URL);
 
 export interface User {
     id: string;

@@ -11,16 +11,45 @@ export default function AuthNavigator() {
     const segments = useSegments();
 
     useEffect(() => {
-        if (isLoading) return; // Ne rien faire pendant le chargement
+        if (isLoading) {
+            console.log('🔄 AuthNavigator - En cours de chargement...');
+            return; // Ne rien faire pendant le chargement
+        }
 
-        const inAuthGroup = segments[0] === '(auth)';
+        // Vérifier si on est sur une page d'authentification
+        const inAuthPages = segments[0] === 'login' || segments[0] === 'register';
+        // Vérifier si on est dans les tabs (pages protégées)
+        const inTabsGroup = segments[0] === '(tabs)';
 
-        if (!isAuthenticated && !inAuthGroup) {
-            // Utilisateur non connecté, rediriger vers login
-            router.replace('/login');
-        } else if (isAuthenticated && inAuthGroup) {
-            // Utilisateur connecté mais sur une page d'auth, rediriger vers l'app
-            router.replace('/(tabs)');
+        console.log('🧭 AuthNavigator - État actuel:', {
+            segments,
+            isAuthenticated,
+            inAuthPages,
+            inTabsGroup
+        });
+
+        if (!isAuthenticated) {
+            // Utilisateur non connecté
+            if (!inAuthPages) {
+                // Si pas sur une page d'auth, rediriger vers login
+                console.log('🔴 Redirection vers login - utilisateur non connecté');
+                router.replace('/login');
+            } else {
+                console.log('✅ Utilisateur non connecté sur page d\'auth - OK');
+            }
+        } else {
+            // Utilisateur connecté
+            if (inAuthPages) {
+                // Si sur une page d'auth, rediriger vers l'app
+                console.log('🟢 Redirection vers app - utilisateur connecté sur page d\'auth');
+                router.replace('/(tabs)');
+            } else if (segments.length === 0) {
+                // Si sur la racine, rediriger vers l'app
+                console.log('🟢 Redirection vers app - racine');
+                router.replace('/(tabs)');
+            } else {
+                console.log('✅ Utilisateur connecté dans l\'app - OK');
+            }
         }
     }, [isAuthenticated, isLoading, segments]);
 

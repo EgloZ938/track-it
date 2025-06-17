@@ -14,22 +14,14 @@ type MenuItem = {
 export default function ProfileScreen() {
     const { user, logout } = useAuth();
 
-    const handleLogout = () => {
-        Alert.alert(
-            'Déconnexion',
-            'Êtes-vous sûr de vouloir vous déconnecter ?',
-            [
-                {
-                    text: 'Annuler',
-                    style: 'cancel',
-                },
-                {
-                    text: 'Déconnexion',
-                    style: 'destructive',
-                    onPress: logout,
-                },
-            ]
-        );
+    const handleLogout = async () => {
+        try {
+            console.log('🔄 Début de la déconnexion...');
+            await logout();
+            console.log('✅ Déconnexion terminée');
+        } catch (error) {
+            console.error('❌ Erreur lors de la déconnexion:', error);
+        }
     };
 
     const menuItems: MenuItem[] = [
@@ -40,11 +32,15 @@ export default function ProfileScreen() {
     ];
 
     const settingsItems: MenuItem[] = [
-        { icon: 'notifications', label: 'Notifications', action: () => { } },
-        { icon: 'shield-checkmark', label: 'Confidentialité', action: () => { } },
-        { icon: 'help-circle', label: 'Aide et support', action: () => { } },
-        { icon: 'information-circle', label: 'À propos', action: () => { } },
+        { icon: 'notifications', label: 'Notifications', action: () => console.log('Notifications pressed') },
+        { icon: 'shield-checkmark', label: 'Confidentialité', action: () => console.log('Privacy pressed') },
+        { icon: 'help-circle', label: 'Aide et support', action: () => console.log('Help pressed') },
+        { icon: 'information-circle', label: 'À propos', action: () => console.log('About pressed') },
     ];
+
+    // Debug: vérifier que l'utilisateur existe
+    console.log('👤 Profile Screen - User:', user);
+    console.log('🔐 Profile Screen - Logout function:', typeof logout);
 
     return (
         <SafeAreaView style={styles.container}>
@@ -107,8 +103,12 @@ export default function ProfileScreen() {
                         ))}
                     </View>
 
-                    {/* Déconnexion */}
-                    <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+                    {/* Bouton de déconnexion avec debug */}
+                    <TouchableOpacity
+                        style={styles.logoutButton}
+                        onPress={handleLogout}
+                        activeOpacity={0.8}
+                    >
                         <Ionicons name="log-out" size={20} color="white" style={{ marginRight: 8 }} />
                         <Text style={styles.logoutButtonText}>Se déconnecter</Text>
                     </TouchableOpacity>
@@ -232,5 +232,21 @@ const styles = StyleSheet.create({
         color: 'white',
         fontWeight: '600',
         fontSize: 16,
+    },
+    // Section debug (à supprimer en production)
+    debugSection: {
+        backgroundColor: '#FEF3C7',
+        padding: 12,
+        borderRadius: 8,
+        marginBottom: 16,
+    },
+    debugTitle: {
+        fontWeight: 'bold',
+        color: '#92400E',
+        marginBottom: 4,
+    },
+    debugText: {
+        color: '#92400E',
+        fontSize: 12,
     },
 });
