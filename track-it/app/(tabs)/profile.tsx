@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
     logoutButton: {
-        backgroundColor: '#DC2626',
+        backgroundColor: '#DC2624',
         paddingVertical: 16,
         borderRadius: 8,
         marginBottom: 32,

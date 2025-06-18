@@ -120,7 +120,7 @@ export default function TicketsScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F9FAFB',
+        backgroundColor: '#1a2332',
     },
     scrollView: {
         flex: 1,
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 30,
         fontWeight: 'bold',
-        color: '#111827',
+        color: 'white',
         marginBottom: 8,
     },
     subtitle: {
