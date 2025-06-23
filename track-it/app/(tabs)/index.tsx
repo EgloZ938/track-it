@@ -1,357 +1,373 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, Alert, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  Alert,
+  StyleSheet,
+  Modal,
+  ActivityIndicator,
+  SafeAreaView
+} from 'react-native';
+
 import { Ionicons } from '@expo/vector-icons';
+
 import * as Location from 'expo-location';
 
-type ProblemType = {
+// TYPES 
+type TypeProbleme = {
   id: string;
-  label: string;
-  icon: string;
-  color: string;
+  libelle: string;
+  icone: string;
+  couleur: string;
 };
 
-const problemTypes: ProblemType[] = [
-  { id: 'cleanliness', label: 'Propreté', icon: 'trash', color: '#F59E0B' },
-  { id: 'equipment', label: 'Équipement défectueux', icon: 'construct', color: '#DC2626' },
-  { id: 'overcrowding', label: 'Surcharge', icon: 'people', color: '#F97316' },
-  { id: 'delay', label: 'Retard', icon: 'time', color: '#0A7EA4' },
-  { id: 'safety', label: 'Sécurité', icon: 'shield-checkmark', color: '#6B46C1' },
-  { id: 'other', label: 'Autre', icon: 'ellipsis-horizontal', color: '#6B7280' },
+
+type TypeTransport = {
+  id: string;
+  libelle: string;
+  icone: string;
+  filtre: string;
+};
+
+type LigneTransport = {
+  id_line: string;
+  shortname_line: string;
+  name_line: string;
+  colourweb_hexa: string;
+  textcolourweb_hexa: string;
+  transportmode: string;
+  operatorname: string;
+};
+
+
+// Liste des types de problèmes
+const typesProbleme: TypeProbleme[] = [
+  { id: 'proprete', libelle: 'Propreté', icone: 'trash', couleur: '#F59E0B' },
+  { id: 'equipement', libelle: 'Équipement HS', icone: 'construct', couleur: '#DC2626' },
+  { id: 'surcharge', libelle: 'Surcharge', icone: 'people', couleur: '#F97316' },
+  { id: 'retard', libelle: 'Retard', icone: 'time', couleur: '#0A7EA4' },
+  { id: 'securite', libelle: 'Sécurité', icone: 'shield-checkmark', couleur: '#6B46C1' },
+  { id: 'autre', libelle: 'Autre', icone: 'ellipsis-horizontal', couleur: '#6B7280' },
 ];
 
-export default function HomeScreen() {
-  const [selectedType, setSelectedType] = useState<string>('');
-  const [description, setDescription] = useState('');
-  const [transportLine, setTransportLine] = useState('');
-  const [location, setLocation] = useState<Location.LocationObject | null>(null);
+// Liste des types de transport
+const typesTransport: TypeTransport[] = [
+  { id: 'rer', libelle: 'RER', icone: 'train', filtre: 'transportmode="rail"' },
+  { id: 'metro', libelle: 'Métro', icone: 'subway', filtre: 'transportmode="metro"' },
+  { id: 'tram', libelle: 'Tramway', icone: 'car', filtre: 'transportmode="tram"' },
+  { id: 'bus', libelle: 'Bus', icone: 'bus', filtre: 'transportmode="bus"' },
+];
 
-  const getLocation = async () => {
+
+export default function EcranSignalement() {
+  // État de la sélection du problème
+  const [typeProblemeSelectionne, setTypeProblemeSelectionne] = useState<string>('');
+  // État de la description
+  const [description, setDescription] = useState<string>('');
+  // État du type de transport sélectionné
+  const [typeTransportSelectionne, setTypeTransportSelectionne] = useState<string>('');
+  // État de la ligne choisie
+  const [ligneSelectionnee, setLigneSelectionnee] = useState<LigneTransport | null>(null);
+  // États des modals
+  const [afficheModalTransport, setAfficheModalTransport] = useState(false);
+  const [afficheModalLignes, setAfficheModalLignes] = useState(false);
+  // État de la liste des lignes à afficher
+  const [listeLignes, setListeLignes] = useState<LigneTransport[]>([]);
+  // État de chargement
+  const [enChargement, setEnChargement] = useState(false);
+  // État de la position
+  const [localisation, setLocalisation] = useState<Location.LocationObject | null>(null);
+
+  //  FONCTION DE RÉCUPÉRATION DES LIGNES 
+  const chargerLignes = async (transportId: string) => {
+    setEnChargement(true);
+    try {
+      const filtre = typesTransport.find(t => t.id === transportId)?.filtre;
+      const url = `https://data.iledefrance-mobilites.fr/api/explore/v2.1/catalog/datasets/referentiel-des-lignes/records?where=${filtre}&select=id_line,shortname_line,name_line,colourweb_hexa,textcolourweb_hexa,transportmode,operatorname&limit=200`;
+      const reponse = await fetch(url);
+      const data = await reponse.json();
+
+      if (data.results) {
+        setListeLignes(data.results.filter((ligne: any) => ligne.shortname_line));
+      }
+    } catch (e: any) {
+      Alert.alert('Erreur', `Impossible de charger les lignes : ${e.message}`);
+    } finally {
+      setEnChargement(false);
+    }
+  };
+
+  //  SÉLECTION D'UN TRANSPORT 
+  const choisirTransport = (transportId: string) => {
+    setTypeTransportSelectionne(transportId);
+    setLigneSelectionnee(null);
+    setAfficheModalTransport(false);
+    chargerLignes(transportId);
+    setAfficheModalLignes(true);
+  };
+
+  //  SÉLECTION D'UNE LIGNE 
+  const choisirLigne = (ligne: LigneTransport) => {
+    setLigneSelectionnee(ligne);
+    setAfficheModalLignes(false);
+  };
+
+  //  RÉCUPÉRATION DE LA LOCALISATION 
+  const obtenirLocalisation = async () => {
     let { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permission refusée', 'Impossible d\'accéder à votre localisation');
+      Alert.alert('Permission refusée', 'Impossible d’accéder à votre position.');
+      return;
+    }
+    let position = await Location.getCurrentPositionAsync({});
+    setLocalisation(position);
+  };
+
+  //  ENVOI DU SIGNALMENT 
+  const envoyerSignalement = () => {
+    if (!typeProblemeSelectionne || !description || !ligneSelectionnee) {
+      Alert.alert('Erreur', 'Merci de remplir tous les champs.');
       return;
     }
 
-    let location = await Location.getCurrentPositionAsync({});
-    setLocation(location);
+    Alert.alert('Succès', 'Signalement envoyé !', [{ text: 'OK', onPress: reinitialiserForm }]);
   };
 
-  const handleSubmit = () => {
-    if (!selectedType || !description || !transportLine) {
-      Alert.alert('Erreur', 'Veuillez remplir tous les champs');
-      return;
-    }
-
-    Alert.alert(
-      'Succès',
-      'Votre signalement a été envoyé avec succès',
-      [{ text: 'OK', onPress: resetForm }]
-    );
-  };
-
-  const resetForm = () => {
-    setSelectedType('');
+  const reinitialiserForm = () => {
+    setTypeProblemeSelectionne('');
     setDescription('');
-    setTransportLine('');
-    setLocation(null);
+    setTypeTransportSelectionne('');
+    setLigneSelectionnee(null);
+    setLocalisation(null);
   };
 
-  const getSelectedButtonStyle = (typeId: string) => {
-    const type = problemTypes.find(t => t.id === typeId);
-    return selectedType === typeId
-      ? { ...styles.problemButton, backgroundColor: type?.color || '#0A7EA4', borderColor: type?.color || '#0A7EA4' }
-      : styles.problemButton;
-  };
+  //  RENDU DU MODAL DES TYPES DE TRANSPORT 
+  const ModalTypesTransport = () => (
+    <Modal visible={afficheModalTransport} transparent animationType="fade">
+      <View style={styles.modalFond}>
+        <View style={styles.modalContenu}>
+          <Text style={styles.modalTitre}>Choisir le mode de transport</Text>
+          <ScrollView
+            horizontal
+            contentContainerStyle={styles.listeTypesTransport}
+            showsHorizontalScrollIndicator={false}
+          >
+            {typesTransport.map((type) => (
+              <TouchableOpacity
+                key={type.id}
+                style={styles.boutonTypeTransport}
+                onPress={() => choisirTransport(type.id)}
+              >
+                <Ionicons name={type.icone as any} size={28} color="#1a2332" />
+                <Text style={styles.texteTypeTransport}>{type.libelle}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+          <TouchableOpacity onPress={() => setAfficheModalTransport(false)}>
+            <Ionicons name="close" size={24} color="#666" style={{ marginTop: 10 }} />
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
 
-  const getSelectedTextStyle = (typeId: string) => {
-    return selectedType === typeId ? styles.problemButtonTextSelected : styles.problemButtonText;
-  };
-
-  return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.backgroundContainer}>
-        {/* Diagonal gradient background */}
-        <View style={styles.diagonalBackground} />
-        <View style={styles.diagonalGradient} />
-        
-        {/* Decorative elements */}
-        <View style={styles.decorativeCircle1} />
-        {/* <View style={styles.decorativeCircle2} /> */}
-        
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-          <View style={styles.header}>
-            <Text style={styles.title}>Signaler un problème</Text>
-            <Text style={styles.subtitle}>Aidez-nous à améliorer votre expérience</Text>
-          </View>
-
-          {/* Type de problème */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Type de problème</Text>
-            <View style={styles.problemTypesContainer}>
-              {problemTypes.map((type) => (
+  //  RENDU DU MODAL DES LIGNES 
+  const ModalLignes = () => (
+    <Modal visible={afficheModalLignes} transparent animationType="fade">
+      <View style={styles.modalFond}>
+        <View style={styles.modalContenuLignes}>
+          <Text style={styles.modalTitre}>Lignes {typeTransportSelectionne.toUpperCase()}</Text>
+          {enChargement ? (
+            <ActivityIndicator color="#0A7EA4" size="large" />
+          ) : (
+            <ScrollView style={styles.scrollLignes}>
+              {listeLignes.map((ligne) => (
                 <TouchableOpacity
-                  key={type.id}
-                  onPress={() => setSelectedType(type.id)}
-                  style={getSelectedButtonStyle(type.id)}
-                  activeOpacity={0.7}
+                  key={ligne.id_line}
+                  style={[styles.boutonLigne, { backgroundColor: `#${ligne.colourweb_hexa}` }]}
+                  onPress={() => choisirLigne(ligne)}
                 >
-                  <Ionicons
-                    name={type.icon as any}
-                    size={20}
-                    color={selectedType === type.id ? 'white' : '#4B5563'}
-                  />
-                  <Text style={getSelectedTextStyle(type.id)}>
-                    {type.label}
+                  <Text
+                    style={[
+                      styles.texteLigne,
+                      { color: `#${ligne.textcolourweb_hexa}` }
+                    ]}
+                  >
+                    {ligne.shortname_line} - {ligne.name_line}
                   </Text>
                 </TouchableOpacity>
               ))}
-            </View>
-          </View>
-
-          {/* Ligne de transport */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Ligne de transport</Text>
-            <TextInput
-              value={transportLine}
-              onChangeText={setTransportLine}
-              placeholder="Ex: Ligne 1, RER A, Bus 95..."
-              style={styles.textInput}
-              placeholderTextColor="#9CA3AF"
-            />
-          </View>
-
-          {/* Description */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Description</Text>
-            <TextInput
-              value={description}
-              onChangeText={setDescription}
-              placeholder="Décrivez le problème en détail..."
-              multiline
-              numberOfLines={4}
-              textAlignVertical="top"
-              style={[styles.textInput, styles.textArea]}
-              placeholderTextColor="#9CA3AF"
-            />
-          </View>
-
-          {/* Localisation */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Localisation</Text>
-            <TouchableOpacity
-              onPress={getLocation}
-              style={styles.locationButton}
-              activeOpacity={0.7}
-            >
-              <View style={styles.locationButtonContent}>
-                <Ionicons name="location" size={20} color="#4B5563" />
-                <Text style={styles.locationButtonText}>
-                  {location ? 'Position capturée' : 'Capturer ma position'}
-                </Text>
-              </View>
-              {location && <Ionicons name="checkmark-circle" size={20} color="#10B981" />}
-            </TouchableOpacity>
-          </View>
-
-          {/* Bouton soumettre */}
-          <TouchableOpacity
-            onPress={handleSubmit}
-            style={styles.submitButton}
-            activeOpacity={0.8}
-          >
-            <View style={styles.submitButtonGradient}>
-              <Text style={styles.submitButtonText}>
-                Envoyer le signalement
-              </Text>
-            </View>
+            </ScrollView>
+          )}
+          <TouchableOpacity onPress={() => setAfficheModalLignes(false)}>
+            <Ionicons name="close" size={24} color="#666" style={{ marginTop: 10 }} />
           </TouchableOpacity>
-        </ScrollView>
+        </View>
       </View>
+    </Modal>
+  );
+
+  //  RENDU DE L'ÉCRAN 
+  return (
+    <SafeAreaView style={styles.container}>
+      <ScrollView style={styles.scrollConteneur} showsVerticalScrollIndicator={false}>
+
+        {/* TITRE */}
+        <Text style={styles.titre}>Signaler un problème</Text>
+        <Text style={styles.sousTitre}>Votre avis nous aide à améliorer le service</Text>
+
+        {/* TYPES DE PROBLÈME */}
+        <Text style={styles.sectionTitre}>Type de problème</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.scrollTypesProbleme}>
+          {typesProbleme.map((type) => (
+            <TouchableOpacity
+              key={type.id}
+              onPress={() => setTypeProblemeSelectionne(type.id)}
+              style={[
+                styles.boutonTypeProbleme,
+                typeProblemeSelectionne === type.id && { backgroundColor: type.couleur }
+              ]}
+            >
+              <Ionicons
+                name={type.icone as any}
+                size={24}
+                color={typeProblemeSelectionne === type.id ? 'white' : '#4B5563'}
+              />
+              <Text style={[
+                styles.texteBoutonProbleme,
+                typeProblemeSelectionne === type.id && { color: 'white' }
+              ]}>{type.libelle}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        {/* TRANSPORT */}
+        <Text style={styles.sectionTitre}>Ligne de transport</Text>
+        <TouchableOpacity style={styles.boutonChoisirLigne} onPress={() => setAfficheModalTransport(true)}>
+          {ligneSelectionnee ? (
+            <View style={styles.choixLigne}>
+              <View style={[
+                styles.badgeLigne,
+                { backgroundColor: `#${ligneSelectionnee.colourweb_hexa}` }
+              ]}>
+                <Text style={{ color: `#${ligneSelectionnee.textcolourweb_hexa}` }}>{ligneSelectionnee.shortname_line}</Text>
+              </View>
+              <Text style={styles.nomLigne}>{ligneSelectionnee.name_line}</Text>
+            </View>
+          ) : (
+            <Text style={styles.texteBoutonChoisir}>Choisir une ligne de transport</Text>
+          )}
+          <Ionicons name="chevron-forward" size={20} color="#666" />
+        </TouchableOpacity>
+
+        {/* DESCRIPTION */}
+        <Text style={styles.sectionTitre}>Description</Text>
+        <TextInput
+          style={styles.inputDescription}
+          multiline
+          numberOfLines={4}
+          placeholder="Détaillez le problème ici…"
+          placeholderTextColor="#9CA3AF"
+          value={description}
+          onChangeText={setDescription}
+        />
+
+        {/* LOCALISATION */}
+        <Text style={styles.sectionTitre}>Localisation</Text>
+        <TouchableOpacity style={styles.boutonLocalisation} onPress={obtenirLocalisation}>
+          <Ionicons name="location" size={24} color="#666" />
+          <Text style={styles.texteBoutonLocalisation}>{localisation ? 'Localisation capturée' : 'Capturer ma position'}</Text>
+          {localisation && <Ionicons name="checkmark-circle" size={24} color="#10B981" />}
+        </TouchableOpacity>
+
+        {/* ENVOI */}
+        <TouchableOpacity style={styles.boutonEnvoyer} onPress={envoyerSignalement}>
+          <Text style={styles.texteBoutonEnvoyer}>Envoyer le signalement</Text>
+        </TouchableOpacity>
+
+      </ScrollView>
+      <ModalTypesTransport />
+      <ModalLignes />
     </SafeAreaView>
   );
 }
 
+//  STYLES 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#1a2332',
-  },
-  backgroundContainer: {
-    flex: 1,
-    position: 'relative',
-  },
-  diagonalBackground: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 250,
-    backgroundColor: '#1a2332',
-    transform: [{ skewY: '-3deg' }],
-    marginTop: -20,
-  },
-  diagonalGradient: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 200,
-    backgroundColor: '#8DE8FE',
-    opacity: 0.7,
-    transform: [{ skewY: '-2deg' }],
-    marginTop: 30,
-    borderTopRightRadius: 100,
-    borderBottomRightRadius: 100,
-    borderBottomLeftRadius: 100,
-    borderTopLeftRadius: 100,
+  container: { flex: 1, backgroundColor: '#1a2332' },
+  scrollConteneur: { paddingHorizontal: 16, paddingVertical: 24 },
+  titre: { fontSize: 28, color: 'white', fontWeight: '800', marginBottom: 8 },
+  sousTitre: { fontSize: 16, color: 'rgba(255,255,255,0.8)', marginBottom: 24 },
+  sectionTitre: { fontSize: 18, color: 'white', fontWeight: '600', marginBottom: 12, marginTop: 20 },
 
+  scrollTypesProbleme: { flexDirection: 'row', paddingBottom: 8 },
 
-  },
-  decorativeCircle1: {
-    position: 'absolute',
-    top: 60,
-    right: 5,
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: 'rgb(12, 12, 12)',
-  },
-  // decorativeCircle2: {
-  //   position: 'absolute',
-  //   top: 90,
-  //   left: 10,
-  //   width: 80,
-  //   height: 80,
-  //   borderRadius: 40,
-  //   backgroundColor: 'rgb(255, 255, 255)',
-  // },
-  scrollView: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 10,
-  },
-  header: {
-    paddingVertical: 40,
-    marginBottom: 8,
-    zIndex: 10,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: 'white',
-    marginBottom: 8,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.9)',
-    fontWeight: '500',
-  },
-  section: {
-    marginBottom: 20,
+  boutonTypeProbleme: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
     backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1a2332',
-    marginBottom: 12,
-  },
-  problemTypesContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-  },
-  problemButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 12,
-    backgroundColor: '#F8F9FA',
-    borderWidth: 2,
-    borderColor: '#E5E7EB',
+    marginRight: 10
   },
-  problemButtonText: {
-    marginLeft: 8,
-    fontWeight: '600',
-    color: '#4B5563',
-    fontSize: 14,
-  },
-  problemButtonTextSelected: {
-    marginLeft: 8,
-    fontWeight: '700',
-    color: 'white',
-    fontSize: 14,
-  },
-  textInput: {
-    backgroundColor: '#F8F9FA',
-    borderWidth: 2,
-    borderColor: '#E5E7EB',
-    borderRadius: 12,
+  texteBoutonProbleme: { marginLeft: 8, color: '#4B5563', fontWeight: '600' },
+
+  boutonChoisirLigne: {
+    backgroundColor: 'white',
     paddingHorizontal: 16,
     paddingVertical: 14,
-    fontSize: 16,
-    color: '#1a2332',
-    fontWeight: '500',
-  },
-  textArea: {
-    minHeight: 120,
-    textAlignVertical: 'top',
-  },
-  locationButton: {
-    backgroundColor: '#F8F9FA',
-    borderWidth: 2,
-    borderColor: '#E5E7EB',
     borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between'
+  },
+  choixLigne: { flexDirection: 'row', alignItems: 'center' },
+  badgeLigne: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, marginRight: 8 },
+  nomLigne: { color: '#1a2332', fontWeight: '600' },
+  texteBoutonChoisir: { color: '#4B5563', fontWeight: '500' },
+
+  inputDescription: {
+    backgroundColor: 'white',
+    padding: 12,
+    borderRadius: 12,
+    minHeight: 100,
+    color: '#1a2332',
+    textAlignVertical: 'top'
+  },
+
+  boutonLocalisation: {
+    backgroundColor: 'white',
     paddingHorizontal: 16,
     paddingVertical: 14,
+    borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'space-between'
   },
-  locationButtonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  locationButtonText: {
-    marginLeft: 8,
-    color: '#4B5563',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  submitButton: {
-    borderRadius: 14,
-    marginBottom: 40,
-    shadowColor: '#0A7EA4',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 8,
-  },
-  submitButtonGradient: {
+  texteBoutonLocalisation: { marginLeft: 8, color: '#4B5563', fontWeight: '500' },
+
+  boutonEnvoyer: {
+    backgroundColor: '#0A7EA4',
     paddingVertical: 18,
     borderRadius: 14,
-    alignItems: 'center',
-    backgroundColor: '#0A7EA4',
+    marginVertical: 24
   },
-  submitButtonText: {
-    color: 'white',
-    textAlign: 'center',
-    fontWeight: '800',
-    fontSize: 18,
-    textShadowColor: 'rgba(0, 0, 0, 0.2)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
-  },
+  texteBoutonEnvoyer: { color: 'white', textAlign: 'center', fontWeight: '800', fontSize: 18 },
+
+  modalFond: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
+  modalContenu: { backgroundColor: 'white', padding: 20, borderRadius: 16, width: '90%' },
+  modalTitre: { fontSize: 18, fontWeight: 'bold', color: '#1a2332', marginBottom: 12 },
+
+  listeTypesTransport: { flexDirection: 'row', paddingVertical: 12 },
+  boutonTypeTransport: { alignItems: 'center', paddingHorizontal: 12 },
+  texteTypeTransport: { color: '#1a2332', fontWeight: '600', marginTop: 8 },
+
+  modalContenuLignes: { backgroundColor: 'white', padding: 20, borderRadius: 16, width: '90%' },
+  scrollLignes: { maxHeight: 400 },
+  boutonLigne: { padding: 12, borderRadius: 12, marginVertical: 4 },
+  texteLigne: { color: 'white', fontWeight: 'bold' },
 });
