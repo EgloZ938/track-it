@@ -1,38 +1,28 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  TextInput,
-  Alert,
-  StyleSheet,
-  Modal,
-  ActivityIndicator,
-  SafeAreaView
+import React, { useState } from 'react';
+import { 
+  View, Text, ScrollView, TouchableOpacity, TextInput, 
+  Alert, StyleSheet, Modal, ActivityIndicator 
 } from 'react-native';
-
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-
 import * as Location from 'expo-location';
 
-// TYPES 
-type TypeProbleme = {
+// ==================== TYPES ====================
+interface TypeProbleme {
   id: string;
   libelle: string;
   icone: string;
   couleur: string;
-};
+}
 
-
-type TypeTransport = {
+interface TypeTransport {
   id: string;
   libelle: string;
   icone: string;
   filtre: string;
-};
+}
 
-type LigneTransport = {
+interface LigneTransport {
   id_line: string;
   shortname_line: string;
   name_line: string;
@@ -40,20 +30,18 @@ type LigneTransport = {
   textcolourweb_hexa: string;
   transportmode: string;
   operatorname: string;
-};
+}
 
-
-// Liste des types de problèmes
-const typesProbleme: TypeProbleme[] = [
+// ==================== DONNÉES STATIQUES ====================
+const typesProblemes: TypeProbleme[] = [
   { id: 'proprete', libelle: 'Propreté', icone: 'trash', couleur: '#F59E0B' },
-  { id: 'equipement', libelle: 'Équipement HS', icone: 'construct', couleur: '#DC2626' },
+  { id: 'equipement', libelle: 'Équipement', icone: 'construct', couleur: '#DC2626' },
   { id: 'surcharge', libelle: 'Surcharge', icone: 'people', couleur: '#F97316' },
   { id: 'retard', libelle: 'Retard', icone: 'time', couleur: '#0A7EA4' },
   { id: 'securite', libelle: 'Sécurité', icone: 'shield-checkmark', couleur: '#6B46C1' },
-  { id: 'autre', libelle: 'Autre', icone: 'ellipsis-horizontal', couleur: '#6B7280' },
+  { id: 'autre', libelle: 'Autre', icone: 'ellipsis-horizontal', couleur: '#64748B' },
 ];
 
-// Liste des types de transport
 const typesTransport: TypeTransport[] = [
   { id: 'rer', libelle: 'RER', icone: 'train', filtre: 'transportmode="rail"' },
   { id: 'metro', libelle: 'Métro', icone: 'subway', filtre: 'transportmode="metro"' },
@@ -61,313 +49,729 @@ const typesTransport: TypeTransport[] = [
   { id: 'bus', libelle: 'Bus', icone: 'bus', filtre: 'transportmode="bus"' },
 ];
 
-
+// ==================== COMPOSANT PRINCIPAL ====================
 export default function EcranSignalement() {
-  // État de la sélection du problème
-  const [typeProblemeSelectionne, setTypeProblemeSelectionne] = useState<string>('');
-  // État de la description
-  const [description, setDescription] = useState<string>('');
-  // État du type de transport sélectionné
+  // États du formulaire
+  const [typeSelectionne, setTypeSelectionne] = useState<string>('');
+  const [description, setDescription] = useState('');
   const [typeTransportSelectionne, setTypeTransportSelectionne] = useState<string>('');
-  // État de la ligne choisie
   const [ligneSelectionnee, setLigneSelectionnee] = useState<LigneTransport | null>(null);
-  // États des modals
-  const [afficheModalTransport, setAfficheModalTransport] = useState(false);
-  const [afficheModalLignes, setAfficheModalLignes] = useState(false);
-  // État de la liste des lignes à afficher
-  const [listeLignes, setListeLignes] = useState<LigneTransport[]>([]);
-  // État de chargement
-  const [enChargement, setEnChargement] = useState(false);
-  // État de la position
   const [localisation, setLocalisation] = useState<Location.LocationObject | null>(null);
+  
+  // États des modales
+  const [modaleTransportVisible, setModaleTransportVisible] = useState(false);
+  const [modaleLigneVisible, setModaleLigneVisible] = useState(false);
+  
+  // États pour les données
+  const [listeLignes, setListeLignes] = useState<LigneTransport[]>([]);
+  const [enChargement, setEnChargement] = useState(false);
 
-  //  FONCTION DE RÉCUPÉRATION DES LIGNES 
+  // ==================== FONCTION DE RÉCUPÉRATION DES LIGNES CORRIGÉE ====================
   const chargerLignes = async (transportId: string) => {
     setEnChargement(true);
+    console.log('🚀 Début chargement lignes pour:', transportId);
+    
     try {
-      const filtre = typesTransport.find(t => t.id === transportId)?.filtre;
-      const url = `https://data.iledefrance-mobilites.fr/api/explore/v2.1/catalog/datasets/referentiel-des-lignes/records?where=${filtre}&select=id_line,shortname_line,name_line,colourweb_hexa,textcolourweb_hexa,transportmode,operatorname&limit=200`;
-      const reponse = await fetch(url);
-      const data = await reponse.json();
-
-      if (data.results) {
-        setListeLignes(data.results.filter((ligne: any) => ligne.shortname_line));
+      const typeTransport = typesTransport.find(t => t.id === transportId);
+      if (!typeTransport) {
+        throw new Error(`Type de transport non trouvé: ${transportId}`);
       }
-    } catch (e: any) {
-      Alert.alert('Erreur', `Impossible de charger les lignes : ${e.message}`);
+
+      console.log('📡 Filtre utilisé:', typeTransport.filtre);
+      
+      // URL corrigée avec encodage proper
+      const filtre = encodeURIComponent(typeTransport.filtre);
+      const url = `https://data.iledefrance-mobilites.fr/api/explore/v2.1/catalog/datasets/referentiel-des-lignes/records?where=${filtre}&select=id_line,shortname_line,name_line,colourweb_hexa,textcolourweb_hexa,transportmode,operatorname&limit=100`;
+      
+      console.log('🌐 URL API:', url);
+      
+      // Timeout pour éviter les blocages
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 secondes max
+      
+      const reponse = await fetch(url, {
+        signal: controller.signal,
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      clearTimeout(timeoutId);
+      
+      console.log('📊 Statut réponse:', reponse.status);
+      
+      if (!reponse.ok) {
+        throw new Error(`Erreur HTTP: ${reponse.status} - ${reponse.statusText}`);
+      }
+      
+      const data = await reponse.json();
+      console.log('📦 Données reçues:', data);
+      
+      if (!data.results || !Array.isArray(data.results)) {
+        console.warn('⚠️ Structure de données inattendue:', data);
+        setListeLignes([]);
+        return;
+      }
+      
+      console.log('📈 Nombre de résultats bruts:', data.results.length);
+      
+      // Traitement des données avec gestion d'erreurs robuste
+      const lignes = data.results
+        .map((item: any, index: number) => {
+          try {
+            // Gérer les différentes structures possibles
+            let ligne = null;
+            
+            if (item.record?.fields) {
+              ligne = item.record.fields;
+            } else if (item.fields) {
+              ligne = item.fields;
+            } else if (item.id_line || item.shortname_line || item.name_line) {
+              ligne = item;
+            }
+            
+            if (!ligne) {
+              console.warn(`⚠️ Structure non reconnue pour l'item ${index}:`, item);
+              return null;
+            }
+            
+            // Validation des champs essentiels
+            if (!ligne.id_line && !ligne.shortname_line && !ligne.name_line) {
+              console.warn(`⚠️ Ligne sans identifiant valide à l'index ${index}:`, ligne);
+              return null;
+            }
+            
+            // Nettoyer les couleurs (supprimer # si présent)
+            if (ligne.colourweb_hexa && ligne.colourweb_hexa.startsWith('#')) {
+              ligne.colourweb_hexa = ligne.colourweb_hexa.substring(1);
+            }
+            if (ligne.textcolourweb_hexa && ligne.textcolourweb_hexa.startsWith('#')) {
+              ligne.textcolourweb_hexa = ligne.textcolourweb_hexa.substring(1);
+            }
+            
+            return ligne;
+          } catch (e) {
+            console.error(`❌ Erreur traitement item ${index}:`, e);
+            return null;
+          }
+        })
+        .filter(Boolean) // Supprimer les éléments null
+        .sort((a, b) => {
+          // Trier par nom court puis par nom complet
+          const nameA = a.shortname_line || a.name_line || '';
+          const nameB = b.shortname_line || b.name_line || '';
+          return nameA.localeCompare(nameB);
+        });
+      
+      console.log('✅ Lignes traitées:', lignes.length);
+      console.log('🔍 Aperçu des lignes:', lignes.slice(0, 3));
+      
+      setListeLignes(lignes);
+      
+      if (lignes.length === 0) {
+        Alert.alert(
+          'Information', 
+          `Aucune ligne ${typeTransport.libelle} trouvée. Veuillez réessayer.`
+        );
+      }
+      
+    } catch (error: any) {
+      console.error('❌ Erreur complète:', error);
+      
+      let messageErreur = 'Erreur inconnue';
+      
+      if (error.name === 'AbortError') {
+        messageErreur = 'Délai d\'attente dépassé. Vérifiez votre connexion.';
+      } else if (error.message.includes('Network request failed')) {
+        messageErreur = 'Problème de connexion réseau';
+      } else if (error.message.includes('HTTP')) {
+        messageErreur = `Erreur serveur: ${error.message}`;
+      } else {
+        messageErreur = error.message || 'Erreur lors du chargement des lignes';
+      }
+      
+      Alert.alert(
+        'Erreur de chargement', 
+        messageErreur,
+        [
+          { text: 'Réessayer', onPress: () => chargerLignes(transportId) },
+          { text: 'Annuler', style: 'cancel' }
+        ]
+      );
+      
+      setListeLignes([]);
     } finally {
       setEnChargement(false);
+      console.log('🏁 Fin chargement lignes');
     }
   };
 
-  //  SÉLECTION D'UN TRANSPORT 
-  const choisirTransport = (transportId: string) => {
-    setTypeTransportSelectionne(transportId);
-    setLigneSelectionnee(null);
-    setAfficheModalTransport(false);
-    chargerLignes(transportId);
-    setAfficheModalLignes(true);
+  // ==================== GESTIONNAIRES D'ÉVÉNEMENTS CORRIGÉS ====================
+  const gererSelectionTransport = async (transportId: string) => {
+    console.log('🎯 Sélection transport:', transportId);
+    
+    try {
+      setTypeTransportSelectionne(transportId);
+      setLigneSelectionnee(null);
+      setModaleTransportVisible(false);
+      
+      // Petite pause pour laisser l'UI se mettre à jour
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Charger les lignes
+      await chargerLignes(transportId);
+      
+      // Ouvrir la modale des lignes seulement si on a des résultats
+      setModaleLigneVisible(true);
+      
+    } catch (error) {
+      console.error('❌ Erreur sélection transport:', error);
+      Alert.alert('Erreur', 'Problème lors de la sélection du transport');
+    }
   };
 
-  //  SÉLECTION D'UNE LIGNE 
-  const choisirLigne = (ligne: LigneTransport) => {
+  const gererSelectionLigne = (ligne: LigneTransport) => {
     setLigneSelectionnee(ligne);
-    setAfficheModalLignes(false);
+    setModaleLigneVisible(false);
   };
 
-  //  RÉCUPÉRATION DE LA LOCALISATION 
   const obtenirLocalisation = async () => {
-    let { status } = await Location.requestForegroundPermissionsAsync();
+    const { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permission refusée', 'Impossible d’accéder à votre position.');
+      Alert.alert('Permission refusée', 'Impossible d\'accéder à votre localisation');
       return;
     }
-    let position = await Location.getCurrentPositionAsync({});
+
+    const position = await Location.getCurrentPositionAsync({});
     setLocalisation(position);
   };
 
-  //  ENVOI DU SIGNALMENT 
-  const envoyerSignalement = () => {
-    if (!typeProblemeSelectionne || !description || !ligneSelectionnee) {
-      Alert.alert('Erreur', 'Merci de remplir tous les champs.');
+  const soumettreSignalement = () => {
+    if (!typeSelectionne || !description || !ligneSelectionnee) {
+      Alert.alert('Erreur', 'Veuillez remplir tous les champs obligatoires');
       return;
     }
 
-    Alert.alert('Succès', 'Signalement envoyé !', [{ text: 'OK', onPress: reinitialiserForm }]);
+    Alert.alert(
+      'Succès',
+      'Votre signalement a été envoyé avec succès',
+      [{ text: 'OK', onPress: reinitialiserFormulaire }]
+    );
   };
 
-  const reinitialiserForm = () => {
-    setTypeProblemeSelectionne('');
+  const reinitialiserFormulaire = () => {
+    setTypeSelectionne('');
     setDescription('');
     setTypeTransportSelectionne('');
     setLigneSelectionnee(null);
     setLocalisation(null);
   };
 
-  //  RENDU DU MODAL DES TYPES DE TRANSPORT 
-  const ModalTypesTransport = () => (
-    <Modal visible={afficheModalTransport} transparent animationType="fade">
-      <View style={styles.modalFond}>
-        <View style={styles.modalContenu}>
-          <Text style={styles.modalTitre}>Choisir le mode de transport</Text>
-          <ScrollView
-            horizontal
-            contentContainerStyle={styles.listeTypesTransport}
-            showsHorizontalScrollIndicator={false}
-          >
+  // ==================== FONCTIONS DE STYLE DYNAMIQUE ====================
+  const obtenirStyleBoutonProbleme = (typeId: string) => {
+    const type = typesProblemes.find(t => t.id === typeId);
+    return typeSelectionne === typeId
+      ? [styles.boutonProbleme, { backgroundColor: type?.couleur, borderColor: type?.couleur }]
+      : styles.boutonProbleme;
+  };
+
+  const obtenirStyleTexteProbleme = (typeId: string) => {
+    return typeSelectionne === typeId ? styles.texteProblemeSelectionne : styles.texteProbleme;
+  };
+
+  // ==================== COMPOSANTS DE RENDU ====================
+  const ModalTransport = () => (
+    <Modal
+      visible={modaleTransportVisible}
+      transparent
+      animationType="slide"
+      onRequestClose={() => setModaleTransportVisible(false)}
+    >
+      <View style={styles.overlayModale}>
+        <View style={styles.contenuModale}>
+          <View style={styles.enteteModale}>
+            <Text style={styles.titreModale}>Choisir un transport</Text>
+            <TouchableOpacity onPress={() => setModaleTransportVisible(false)}>
+              <Ionicons name="close" size={24} color="#64748B" />
+            </TouchableOpacity>
+          </View>
+          
+          <View style={styles.conteneurTypesTransport}>
             {typesTransport.map((type) => (
               <TouchableOpacity
                 key={type.id}
+                onPress={() => gererSelectionTransport(type.id)}
                 style={styles.boutonTypeTransport}
-                onPress={() => choisirTransport(type.id)}
               >
-                <Ionicons name={type.icone as any} size={28} color="#1a2332" />
+                <View style={styles.iconeTypeTransport}>
+                  <Ionicons name={type.icone as any} size={24} color="#1E293B" />
+                </View>
                 <Text style={styles.texteTypeTransport}>{type.libelle}</Text>
               </TouchableOpacity>
             ))}
-          </ScrollView>
-          <TouchableOpacity onPress={() => setAfficheModalTransport(false)}>
-            <Ionicons name="close" size={24} color="#666" style={{ marginTop: 10 }} />
-          </TouchableOpacity>
+          </View>
         </View>
       </View>
     </Modal>
   );
 
-  //  RENDU DU MODAL DES LIGNES 
-  const ModalLignes = () => (
-    <Modal visible={afficheModalLignes} transparent animationType="fade">
-      <View style={styles.modalFond}>
-        <View style={styles.modalContenuLignes}>
-          <Text style={styles.modalTitre}>Lignes {typeTransportSelectionne.toUpperCase()}</Text>
+  const ModaleLigne = () => (
+    <Modal
+      visible={modaleLigneVisible}
+      transparent
+      animationType="slide"
+      onRequestClose={() => setModaleLigneVisible(false)}
+    >
+      <View style={styles.overlayModale}>
+        <View style={styles.contenuModale}>
+          <View style={styles.enteteModale}>
+            <Text style={styles.titreModale}>
+              Lignes {typesTransport.find(t => t.id === typeTransportSelectionne)?.libelle}
+            </Text>
+            <TouchableOpacity onPress={() => setModaleLigneVisible(false)}>
+              <Ionicons name="close" size={24} color="#64748B" />
+            </TouchableOpacity>
+          </View>
+          
           {enChargement ? (
-            <ActivityIndicator color="#0A7EA4" size="large" />
+            <View style={styles.conteneurChargement}>
+              <ActivityIndicator size="large" color="#0EA5E9" />
+              <Text style={styles.texteChargement}>Chargement des lignes...</Text>
+            </View>
           ) : (
-            <ScrollView style={styles.scrollLignes}>
-              {listeLignes.map((ligne) => (
+            <ScrollView style={styles.conteneurLignes} showsVerticalScrollIndicator={false}>
+              <View style={styles.grilleLignes}>
+                {listeLignes.length > 0 ? (
+                  listeLignes.map((ligne, index) => (
+                    <TouchableOpacity
+                      key={ligne.id_line || `ligne-${index}`}
+                      onPress={() => gererSelectionLigne(ligne)}
+                      style={[
+                        styles.boutonLigne,
+                        { backgroundColor: ligne.colourweb_hexa ? `#${ligne.colourweb_hexa}` : '#0EA5E9' }
+                      ]}
+                    >
+                      <Text style={[
+                        styles.texteLigne,
+                        { color: ligne.textcolourweb_hexa ? `#${ligne.textcolourweb_hexa}` : 'white' }
+                      ]}>
+                        {ligne.shortname_line || ligne.name_line || 'N/A'}
+                      </Text>
+                    </TouchableOpacity>
+                  ))
+                ) : (
+                  <Text style={styles.texteAucuneLigne}>
+                    Aucune ligne disponible pour ce transport
+                  </Text>
+                )}
+              </View>
+            </ScrollView>
+          )}
+        </View>
+      </View>
+    </Modal>
+  );
+
+  // ==================== RENDU PRINCIPAL ====================
+  return (
+    <SafeAreaView style={styles.conteneur}>
+      <View style={styles.arrierePlan}>
+        <View style={styles.formeDecorative1} />
+        <View style={styles.formeDecorative2} />
+        
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          {/* En-tête */}
+          <View style={styles.entete}>
+            <Text style={styles.titrePrincipal}>Signaler un problème</Text>
+            <Text style={styles.sousTitre}>Aidez-nous à améliorer votre voyage</Text>
+          </View>
+
+          {/* Section Type de problème */}
+          <View style={styles.section}>
+            <Text style={styles.titreSectionIcone}>
+               Type de problème <Text style={styles.obligatoire}>*</Text>
+            </Text>
+            <View style={styles.conteneurProblemes}>
+              {typesProblemes.map((type) => (
                 <TouchableOpacity
-                  key={ligne.id_line}
-                  style={[styles.boutonLigne, { backgroundColor: `#${ligne.colourweb_hexa}` }]}
-                  onPress={() => choisirLigne(ligne)}
+                  key={type.id}
+                  onPress={() => setTypeSelectionne(type.id)}
+                  style={obtenirStyleBoutonProbleme(type.id)}
                 >
-                  <Text
-                    style={[
-                      styles.texteLigne,
-                      { color: `#${ligne.textcolourweb_hexa}` }
-                    ]}
-                  >
-                    {ligne.shortname_line} - {ligne.name_line}
+                  <Ionicons
+                    name={type.icone as any}
+                    size={18}
+                    color={typeSelectionne === type.id ? 'white' : '#64748B'}
+                  />
+                  <Text style={obtenirStyleTexteProbleme(type.id)}>
+                    {type.libelle}
                   </Text>
                 </TouchableOpacity>
               ))}
-            </ScrollView>
-          )}
-          <TouchableOpacity onPress={() => setAfficheModalLignes(false)}>
-            <Ionicons name="close" size={24} color="#666" style={{ marginTop: 10 }} />
-          </TouchableOpacity>
-        </View>
-      </View>
-    </Modal>
-  );
+            </View>
+          </View>
 
-  //  RENDU DE L'ÉCRAN 
-  return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollConteneur} showsVerticalScrollIndicator={false}>
-
-        {/* TITRE */}
-        <Text style={styles.titre}>Signaler un problème</Text>
-        <Text style={styles.sousTitre}>Votre avis nous aide à améliorer le service</Text>
-
-        {/* TYPES DE PROBLÈME */}
-        <Text style={styles.sectionTitre}>Type de problème</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.scrollTypesProbleme}>
-          {typesProbleme.map((type) => (
+          {/* Section Ligne de transport */}
+          <View style={styles.section}>
+            <Text style={styles.titreSectionIcone}>
+              Ligne de transport <Text style={styles.obligatoire}>*</Text>
+            </Text>
             <TouchableOpacity
-              key={type.id}
-              onPress={() => setTypeProblemeSelectionne(type.id)}
-              style={[
-                styles.boutonTypeProbleme,
-                typeProblemeSelectionne === type.id && { backgroundColor: type.couleur }
-              ]}
+              onPress={() => setModaleTransportVisible(true)}
+              style={styles.selecteurTransport}
             >
-              <Ionicons
-                name={type.icone as any}
-                size={24}
-                color={typeProblemeSelectionne === type.id ? 'white' : '#4B5563'}
-              />
-              <Text style={[
-                styles.texteBoutonProbleme,
-                typeProblemeSelectionne === type.id && { color: 'white' }
-              ]}>{type.libelle}</Text>
+              <View style={styles.contenuSelecteur}>
+                {ligneSelectionnee ? (
+                  <View style={styles.conteneurLigneSelectionnee}>
+                    <View style={[
+                      styles.badgeLigne,
+                      { backgroundColor: ligneSelectionnee.colourweb_hexa ? `#${ligneSelectionnee.colourweb_hexa}` : '#0EA5E9' }
+                    ]}>
+                      <Text style={[
+                        styles.texteBadgeLigne,
+                        { color: ligneSelectionnee.textcolourweb_hexa ? `#${ligneSelectionnee.textcolourweb_hexa}` : 'white' }
+                      ]}>
+                        {ligneSelectionnee.shortname_line || 'N/A'}
+                      </Text>
+                    </View>
+                    <Text style={styles.detailsLigne} numberOfLines={1}>
+                      {ligneSelectionnee.name_line || 'Nom non disponible'}
+                    </Text>
+                  </View>
+                ) : (
+                  <>
+                    <Ionicons name="train" size={20} color="#64748B" />
+                    <Text style={styles.texteSelecteur}>Sélectionner une ligne</Text>
+                  </>
+                )}
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#64748B" />
             </TouchableOpacity>
-          ))}
+          </View>
+
+          {/* Section Description */}
+          <View style={styles.section}>
+            <Text style={styles.titreSectionIcone}>
+               Description <Text style={styles.obligatoire}>*</Text>
+            </Text>
+            <TextInput
+              value={description}
+              onChangeText={setDescription}
+              placeholder="Décrivez le problème en détail..."
+              multiline
+              numberOfLines={4}
+              style={styles.champTexte}
+              placeholderTextColor="#94A3B8"
+            />
+          </View>
+
+          {/* Section Localisation */}
+          <View style={styles.section}>
+            <Text style={styles.titreSectionIcone}> Localisation (optionnel)</Text>
+            <TouchableOpacity
+              onPress={obtenirLocalisation}
+              style={styles.boutonLocalisation}
+            >
+              <View style={styles.contenuBoutonLocalisation}>
+                <Ionicons name="location" size={20} color="#64748B" />
+                <Text style={styles.texteBoutonLocalisation}>
+                  {localisation ? 'Position capturée ✓' : 'Capturer ma position'}
+                </Text>
+              </View>
+              {localisation && <Ionicons name="checkmark-circle" size={20} color="#10B981" />}
+            </TouchableOpacity>
+          </View>
+
+          {/* Bouton de soumission */}
+          <TouchableOpacity
+            onPress={soumettreSignalement}
+            style={styles.boutonSoumission}
+          >
+            <Text style={styles.texteBoutonSoumission}>
+               Envoyer le signalement
+            </Text>
+          </TouchableOpacity>
         </ScrollView>
 
-        {/* TRANSPORT */}
-        <Text style={styles.sectionTitre}>Ligne de transport</Text>
-        <TouchableOpacity style={styles.boutonChoisirLigne} onPress={() => setAfficheModalTransport(true)}>
-          {ligneSelectionnee ? (
-            <View style={styles.choixLigne}>
-              <View style={[
-                styles.badgeLigne,
-                { backgroundColor: `#${ligneSelectionnee.colourweb_hexa}` }
-              ]}>
-                <Text style={{ color: `#${ligneSelectionnee.textcolourweb_hexa}` }}>{ligneSelectionnee.shortname_line}</Text>
-              </View>
-              <Text style={styles.nomLigne}>{ligneSelectionnee.name_line}</Text>
-            </View>
-          ) : (
-            <Text style={styles.texteBoutonChoisir}>Choisir une ligne de transport</Text>
-          )}
-          <Ionicons name="chevron-forward" size={20} color="#666" />
-        </TouchableOpacity>
-
-        {/* DESCRIPTION */}
-        <Text style={styles.sectionTitre}>Description</Text>
-        <TextInput
-          style={styles.inputDescription}
-          multiline
-          numberOfLines={4}
-          placeholder="Détaillez le problème ici…"
-          placeholderTextColor="#9CA3AF"
-          value={description}
-          onChangeText={setDescription}
-        />
-
-        {/* LOCALISATION */}
-        <Text style={styles.sectionTitre}>Localisation</Text>
-        <TouchableOpacity style={styles.boutonLocalisation} onPress={obtenirLocalisation}>
-          <Ionicons name="location" size={24} color="#666" />
-          <Text style={styles.texteBoutonLocalisation}>{localisation ? 'Localisation capturée' : 'Capturer ma position'}</Text>
-          {localisation && <Ionicons name="checkmark-circle" size={24} color="#10B981" />}
-        </TouchableOpacity>
-
-        {/* ENVOI */}
-        <TouchableOpacity style={styles.boutonEnvoyer} onPress={envoyerSignalement}>
-          <Text style={styles.texteBoutonEnvoyer}>Envoyer le signalement</Text>
-        </TouchableOpacity>
-
-      </ScrollView>
-      <ModalTypesTransport />
-      <ModalLignes />
+        <ModalTransport />
+        <ModaleLigne />
+      </View>
     </SafeAreaView>
   );
 }
 
-//  STYLES 
+// ==================== STYLES OPTIMISÉS ====================
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#1a2332' },
-  scrollConteneur: { paddingHorizontal: 16, paddingVertical: 24 },
-  titre: { fontSize: 28, color: 'white', fontWeight: '800', marginBottom: 8 },
-  sousTitre: { fontSize: 16, color: 'rgba(255,255,255,0.8)', marginBottom: 24 },
-  sectionTitre: { fontSize: 18, color: 'white', fontWeight: '600', marginBottom: 12, marginTop: 20 },
-
-  scrollTypesProbleme: { flexDirection: 'row', paddingBottom: 8 },
-
-  boutonTypeProbleme: {
+  conteneur: {
+    flex: 1,
+    backgroundColor: '#0F172A',
+  },
+  arrierePlan: {
+    flex: 1,
+    position: 'relative',
+  },
+  formeDecorative1: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 300,
+    backgroundColor: 'linear-gradient(135deg, #0EA5E9 0%, #3B82F6 100%)',
+    borderBottomLeftRadius: 50,
+    borderBottomRightRadius: 50,
+    opacity: 0.9,
+  },
+  formeDecorative2: {
+    position: 'absolute',
+    top: 80,
+    right: -50,
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  scrollView: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  entete: {
+    paddingVertical: 50,
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  titrePrincipal: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: 'white',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  sousTitre: {
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.8)',
+    textAlign: 'center',
+  },
+  section: {
+    marginBottom: 24,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  titreSectionIcone: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1E293B',
+    marginBottom: 16,
+  },
+  obligatoire: {
+    color: '#EF4444',
+  },
+  conteneurProblemes: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  boutonProbleme: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 16,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 2,
+    borderColor: '#E2E8F0',
+  },
+  texteProbleme: {
+    marginLeft: 8,
+    fontWeight: '600',
+    color: '#64748B',
+    fontSize: 14,
+  },
+  texteProblemeSelectionne: {
+    marginLeft: 8,
+    fontWeight: '700',
+    color: 'white',
+    fontSize: 14,
+  },
+  selecteurTransport: {
+    backgroundColor: '#F8FAFC',
+    borderWidth: 2,
+    borderColor: '#E2E8F0',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  contenuSelecteur: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  texteSelecteur: {
+    marginLeft: 12,
+    color: '#64748B',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  conteneurLigneSelectionnee: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  badgeLigne: {
     paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: 10,
-    backgroundColor: 'white',
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: 10
+    borderRadius: 20,
+    marginRight: 12,
   },
-  texteBoutonProbleme: { marginLeft: 8, color: '#4B5563', fontWeight: '600' },
-
-  boutonChoisirLigne: {
-    backgroundColor: 'white',
+  texteBadgeLigne: {
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+  detailsLigne: {
+    color: '#64748B',
+    fontSize: 14,
+    fontWeight: '500',
+    flex: 1,
+  },
+  champTexte: {
+    backgroundColor: '#F8FAFC',
+    borderWidth: 2,
+    borderColor: '#E2E8F0',
+    borderRadius: 16,
     paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between'
+    paddingVertical: 16,
+    fontSize: 16,
+    color: '#1E293B',
+    minHeight: 120,
+    textAlignVertical: 'top',
   },
-  choixLigne: { flexDirection: 'row', alignItems: 'center' },
-  badgeLigne: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, marginRight: 8 },
-  nomLigne: { color: '#1a2332', fontWeight: '600' },
-  texteBoutonChoisir: { color: '#4B5563', fontWeight: '500' },
-
-  inputDescription: {
-    backgroundColor: 'white',
-    padding: 12,
-    borderRadius: 12,
-    minHeight: 100,
-    color: '#1a2332',
-    textAlignVertical: 'top'
-  },
-
   boutonLocalisation: {
-    backgroundColor: 'white',
+    backgroundColor: '#F8FAFC',
+    borderWidth: 2,
+    borderColor: '#E2E8F0',
+    borderRadius: 16,
     paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: 12,
+    paddingVertical: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between'
+    justifyContent: 'space-between',
   },
-  texteBoutonLocalisation: { marginLeft: 8, color: '#4B5563', fontWeight: '500' },
-
-  boutonEnvoyer: {
-    backgroundColor: '#0A7EA4',
+  contenuBoutonLocalisation: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  texteBoutonLocalisation: {
+    marginLeft: 12,
+    color: '#64748B',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  boutonSoumission: {
+    backgroundColor: '#0EA5E9',
+    borderRadius: 20,
     paddingVertical: 18,
-    borderRadius: 14,
-    marginVertical: 24
+    marginBottom: 60,
+    alignItems: 'center',
+    shadowColor: '#0EA5E9',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 8,
   },
-  texteBoutonEnvoyer: { color: 'white', textAlign: 'center', fontWeight: '800', fontSize: 18 },
-
-  modalFond: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
-  modalContenu: { backgroundColor: 'white', padding: 20, borderRadius: 16, width: '90%' },
-  modalTitre: { fontSize: 18, fontWeight: 'bold', color: '#1a2332', marginBottom: 12 },
-
-  listeTypesTransport: { flexDirection: 'row', paddingVertical: 12 },
-  boutonTypeTransport: { alignItems: 'center', paddingHorizontal: 12 },
-  texteTypeTransport: { color: '#1a2332', fontWeight: '600', marginTop: 8 },
-
-  modalContenuLignes: { backgroundColor: 'white', padding: 20, borderRadius: 16, width: '90%' },
-  scrollLignes: { maxHeight: 400 },
-  boutonLigne: { padding: 12, borderRadius: 12, marginVertical: 4 },
-  texteLigne: { color: 'white', fontWeight: 'bold' },
+  texteBoutonSoumission: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  // Styles des modales
+  overlayModale: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'flex-end',
+  },
+  contenuModale: {
+    backgroundColor: 'white',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    maxHeight: '80%',
+  },
+  enteteModale: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  titreModale: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1E293B',
+  },
+  conteneurTypesTransport: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: 16,
+  },
+  boutonTypeTransport: {
+    alignItems: 'center',
+    padding: 16,
+  },
+  iconeTypeTransport: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#E0F2FE',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  texteTypeTransport: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1E293B',
+  },
+  conteneurChargement: {
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  texteChargement: {
+    marginTop: 16,
+    color: '#64748B',
+    fontSize: 16,
+  },
+  conteneurLignes: {
+    maxHeight: 400,
+  },
+  grilleLignes: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    paddingBottom: 16,
+  },
+  boutonLigne: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  texteLigne: {
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+  texteAucuneLigne: {
+    color: '#64748B',
+    fontSize: 16,
+    textAlign: 'center',
+    padding: 32,
+  },
 });
