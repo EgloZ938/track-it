@@ -55,16 +55,16 @@ const ticketSchema = new mongoose.Schema({
     type: {
         type: String,
         required: true,
-        enum: ['cleanliness', 'equipment', 'overcrowding', 'delay', 'safety', 'other'],
+        enum: ['Proprete', 'Equipement', 'Surcharge', 'Retard', 'Securite', 'Autre'],
     },
-    transportLine: {
-        type: String,
-        required: true,
+    transportLine: { // <-- Ce champ doit être un objet
+    id_line: { type: String, required: true },
+    shortname_line: { type: String }, // Peut-être optionnel
+    name_line: { type: String, required: true },
+    transportmode: { type: String, required: true },
+    operatorname: { type: String }, 
     },
-    description: {
-        type: String,
-        required: true,
-    },
+    description: {type: String, required: true},
     location: {
         latitude: Number,
         longitude: Number,
@@ -82,6 +82,7 @@ const ticketSchema = new mongoose.Schema({
         type: Date,
         default: Date.now,
     },
+    
 });
 
 const User = mongoose.model('User', userSchema);

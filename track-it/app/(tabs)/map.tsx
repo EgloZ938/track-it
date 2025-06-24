@@ -6,6 +6,9 @@ import { Ionicons } from '@expo/vector-icons';
 export default function MapScreen() {
     return (
         <SafeAreaView style={styles.container}>
+            <View style={styles.arrierePlan}>
+            <View style={styles.formeDecorative1} />
+            <View style={styles.formeDecorative2} />
             <View style={styles.centerContent}>
                 <View style={styles.card}>
                     <Ionicons name="map" size={80} color="#9CA3AF" />
@@ -20,6 +23,7 @@ export default function MapScreen() {
                     </TouchableOpacity>
                 </View>
             </View>
+            </View>
         </SafeAreaView>
     );
 }
@@ -27,8 +31,32 @@ export default function MapScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#1a2332',
+        backgroundColor: '#0F172A',
     },
+    arrierePlan: {
+    flex: 1,
+    position: 'relative',
+  },
+  formeDecorative1: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 300,
+    backgroundColor: 'linear-gradient(135deg, #0EA5E9 0%, #3B82F6 100%)',
+    borderBottomLeftRadius: 50,
+    borderBottomRightRadius: 50,
+    opacity: 0.9,
+  },
+  formeDecorative2: {
+    position: 'absolute',
+    top: 80,
+    right: -50,
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  }, 
     centerContent: {
         flex: 1,
         alignItems: 'center',

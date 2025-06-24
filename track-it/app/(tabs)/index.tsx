@@ -6,6 +6,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
+import authService from '@/services/authService';
 
 // ==================== TYPES ====================
 interface TypeProbleme {
@@ -34,12 +35,12 @@ interface LigneTransport {
 
 // ==================== DONNÉES STATIQUES ====================
 const typesProblemes: TypeProbleme[] = [
-  { id: 'proprete', libelle: 'Propreté', icone: 'trash', couleur: '#F59E0B' },
-  { id: 'equipement', libelle: 'Équipement', icone: 'construct', couleur: '#DC2626' },
-  { id: 'surcharge', libelle: 'Surcharge', icone: 'people', couleur: '#F97316' },
-  { id: 'retard', libelle: 'Retard', icone: 'time', couleur: '#0A7EA4' },
-  { id: 'securite', libelle: 'Sécurité', icone: 'shield-checkmark', couleur: '#6B46C1' },
-  { id: 'autre', libelle: 'Autre', icone: 'ellipsis-horizontal', couleur: '#64748B' },
+  { id: 'Proprete', libelle: 'Propreté', icone: 'trash', couleur: '#F59E0B' },
+  { id: 'Equipement', libelle: 'Équipement', icone: 'construct', couleur: '#DC2626' },
+  { id: 'Surcharge', libelle: 'Surcharge', icone: 'people', couleur: '#F97316' },
+  { id: 'Retard', libelle: 'Retard', icone: 'time', couleur: '#0A7EA4' },
+  { id: 'Securite', libelle: 'Sécurité', icone: 'shield-checkmark', couleur: '#6B46C1' },
+  { id: 'Autre', libelle: 'Autre', icone: 'ellipsis-horizontal', couleur: '#64748B' },
 ];
 
 const typesTransport: TypeTransport[] = [
@@ -247,18 +248,95 @@ export default function EcranSignalement() {
     setLocalisation(position);
   };
 
-  const soumettreSignalement = () => {
-    if (!typeSelectionne || !description || !ligneSelectionnee) {
-      Alert.alert('Erreur', 'Veuillez remplir tous les champs obligatoires');
-      return;
+  const soumettreSignalement = async () => {
+  if (!typeSelectionne || !description || !ligneSelectionnee) {
+    Alert.alert('Erreur', 'Veuillez remplir tous les champs obligatoires');
+    return;
+  }
+
+  setEnChargement(true);
+
+  try {
+    const ticketData = {
+      // 1. 'type' : Le type de problème sélectionné
+      // Le backend attend un champ 'type', et votre frontend le stocke dans 'typeSelectionne'.
+      type: typeSelectionne,
+
+      // 2. 'transportLine' : Les détails de la ligne de transport
+      // Votre backend attend un objet pour 'transportLine'.
+      // Assurez-vous d'envoyer les propriétés que votre modèle Mongoose attend pour 'transportLine'.
+      // D'après votre code, 'id_line', 'name_line', et 'transportmode' sont pertinents.
+      transportLine: {
+        id_line: ligneSelectionnee.id_line,
+        name_line: ligneSelectionnee.name_line,
+        transportmode: ligneSelectionnee.transportmode,
+      },
+
+      // 3. 'description' : La description du problème
+      // Le backend attend 'description', qui est stockée dans votre état 'description'.
+      description: description,
+
+      // 4. 'location' : La localisation géographique (optionnel si non disponible)
+      // Votre backend attend un objet pour 'location'.
+      // Si 'localisation' existe (que l'utilisateur a autorisé la géolocalisation), on envoie ses coordonnées.
+      // Sinon, on envoie 'null'. Assurez-vous que votre schéma Mongoose pour 'location' gère les propriétés 'latitude' et 'longitude'.
+      location: localisation ? {
+        latitude: localisation.coords.latitude,
+        longitude: localisation.coords.longitude,
+        // Ajoutez ici d'autres propriétés de localisation si votre schéma Mongoose les définit.
+        // Par exemple: accuracy, altitude, timestamp (de la localisation)
+      } : null, // Si 'localisation' est null ou undefined, on envoie null
+
+      // Note : 'userId', 'timestamp' ou 'statut' ne sont généralement PAS envoyés depuis le frontend
+      // si votre backend les génère ou les déduit à la réception du ticket.
+      // Votre route server.js utilise 'req.user.userId', donc pas besoin de l'envoyer.
+    };
+
+    // --- Appel API ---
+    // Assurez-vous que cette URL est correcte et correspond à votre configuration backend
+    // et à l'URL de base configurée dans votre authService (si vous l'utilisez pour d'autres appels).
+    // Exemple : si votre backend est sur 'http://192.168.1.140:3000' et votre route est '/api/tickets'
+    const backendUrl = 'http://192.168.1.140:3000/api/tickets'; // Adaptez cette URL à votre environnement réel
+
+    const token = await authService.getToken(); // Récupérer le token d'authentification
+    if (!token) {
+        throw new Error('Aucun token d\'authentification trouvé. Veuillez vous connecter.');
     }
+
+    const reponseBackend = await fetch(backendUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`, // Envoyer le token pour l'authentification
+      },
+      body: JSON.stringify(ticketData),
+    });
+
+    if (!reponseBackend.ok) {
+      const errorData = await reponseBackend.json();
+      throw new Error(errorData.message || `Erreur serveur: ${reponseBackend.statusText}`);
+    }
+
+    const resultat = await reponseBackend.json();
+    console.log('Ticket envoyé avec succès:', resultat);
 
     Alert.alert(
       'Succès',
-      'Votre signalement a été envoyé avec succès',
+      'Votre signalement a été envoyé avec succès !',
       [{ text: 'OK', onPress: reinitialiserFormulaire }]
     );
-  };
+
+  } catch (error: any) {
+    console.error('Erreur lors de l\'envoi du signalement:', error);
+    Alert.alert(
+      'Erreur d\'envoi',
+      error.message || 'Impossible d\'envoyer votre signalement. Veuillez réessayer.',
+      [{ text: 'OK' }]
+    );
+  } finally {
+    setEnChargement(false);
+  }
+};
 
   const reinitialiserFormulaire = () => {
     setTypeSelectionne('');
@@ -537,7 +615,7 @@ const styles = StyleSheet.create({
   },
   entete: {
     paddingVertical: 50,
-    marginBottom: 20,
+    marginBottom: 10,
     alignItems: 'center',
   },
   titrePrincipal: {
