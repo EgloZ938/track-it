@@ -796,8 +796,9 @@ const styles = StyleSheet.create({
   },
   conteneurTypesTransport: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 16,
+    justifyContent: 'center',
+    paddingVertical: 46,
+    
   },
   boutonTypeTransport: {
     alignItems: 'center',

@@ -1,8 +1,10 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react'; 
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert, ActivityIndicator, RefreshControl } from 'react-native'; 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/contexts/AuthContext';
+import authService from '@/services/authService'; 
+import { useFocusEffect } from '@react-navigation/native'; 
 
 type MenuItem = {
     icon: string;
@@ -14,6 +16,11 @@ type MenuItem = {
 export default function ProfileScreen() {
     const { user, logout } = useAuth();
 
+    const [stats, setStats] = useState({ totalSent: 0, totalResolved: 0 });
+    const [isLoadingStats, setIsLoadingStats] = useState(true);
+    const [errorStats, setErrorStats] = useState<string | null>(null);
+     const [isRefreshing, setIsRefreshing] = useState(false);
+
     const handleLogout = async () => {
         try {
             console.log('🔄 Début de la déconnexion...');
@@ -24,11 +31,72 @@ export default function ProfileScreen() {
         }
     };
 
+       const fetchStats = async () => { // Pas besoin de showMainLoader ici, la logique de useFocusEffect/RefreshControl le gère
+        // Si c'est un refresh manuel (pull-to-refresh), on met isRefreshing à true.
+        // Sinon, si c'est le premier chargement ou suite à une erreur, on met isLoadingStats à true.
+        if (!isRefreshing && stats.totalSent === 0 && !errorStats) {
+             setIsLoadingStats(true);
+        }
+        setErrorStats(null); // Toujours réinitialiser les erreurs au début d'un fetch
+
+        try {
+            const token = await authService.getToken();
+            if (!token) {
+                setErrorStats('Non authentifié. Veuillez vous connecter pour voir vos statistiques.');
+                logout();
+                return;
+            }
+
+            const backendBaseUrl = 'http://192.168.1.140:3000';
+            const apiUrl = `${backendBaseUrl}/api/tickets/stats`;
+
+            console.log('🌐 Récupération des statistiques depuis :', apiUrl);
+
+            const response = await fetch(apiUrl, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                console.error('Erreur réponse backend lors de la récupération des statistiques :', data);
+                throw new Error(data.message || `Échec de la récupération des statistiques (code: ${response.status}).`);
+            }
+
+            console.log('📦 Statistiques reçues :', data);
+            setStats(data);
+
+        } catch (err: any) {
+            console.error('❌ Erreur lors du chargement des statistiques :', err);
+            setErrorStats(err.message || 'Impossible de charger vos statistiques.');
+            if (err.message.includes('Non authentifié') || err.message.includes('Token invalide')) {
+                logout();
+            }
+        } finally {
+            setIsLoadingStats(false); // Désactive le loader principal
+            setIsRefreshing(false); // Désactive l'indicateur de rafraîchissement manuel
+        }
+    };
+
+     useFocusEffect(
+        useCallback(() => {
+            console.log("ProfileScreen est focusé, rafraîchissement des statistiques...");
+            fetchStats();
+            return () => {
+               
+            };
+        }, [user]) 
+    );
+
     const menuItems: MenuItem[] = [
         { icon: 'person', label: 'Nom d\'utilisateur', value: `${user?.firstName} ${user?.lastName}` },
         { icon: 'mail', label: 'Email', value: user?.email },
-        { icon: 'stats-chart', label: 'Signalements envoyés', value: '12' },
-        { icon: 'checkmark-circle', label: 'Problèmes résolus', value: '8' },
+        { icon: 'stats-chart', label: 'Signalements envoyés', value: isLoadingStats ? '...' : stats.totalSent.toString() },
+        { icon: 'checkmark-circle', label: 'Problèmes résolus', value: isLoadingStats ? '...' : stats.totalResolved.toString() },
     ];
 
     const settingsItems: MenuItem[] = [
@@ -44,7 +112,24 @@ export default function ProfileScreen() {
 
     return (
         <SafeAreaView style={styles.container}>
-            <ScrollView style={styles.scrollView}>
+           <ScrollView
+                style={styles.scrollView}
+                // Ceci est l'endroit le plus important :
+                // Le RefreshControl DOIT être passé à la prop `refreshControl` de la ScrollView.
+                refreshControl={
+                    <RefreshControl
+                        refreshing={isRefreshing} // Lié à l'état isRefreshing
+                        onRefresh={() => {
+                            // Quand l'utilisateur tire, active l'indicateur de rafraîchissement
+                            setIsRefreshing(true); 
+                            // Et lance la récupération des tickets, sans afficher le grand loader central
+                            fetchStats(); 
+                        }}
+                        tintColor="#0EA5E9" // Couleur de l'icône de chargement (iOS)
+                        colors={['#0EA5E9']} // Couleurs de l'icône de chargement (Android)
+                    />
+                }
+            >
                 <View style={styles.content}>
                     <Text style={styles.title}>Mon profil</Text>
 

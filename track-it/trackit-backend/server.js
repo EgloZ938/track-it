@@ -287,6 +287,32 @@ app.patch('/api/tickets/:id/status', authenticateToken, async (req, res) => {
     }
 });
 
+app.get('/api/tickets/stats', authenticateToken, async (req, res) => {
+   try {
+        const userId = req.user.userId; 
+
+      
+        const totalSent = await Ticket.countDocuments({ userId: userId });
+
+      
+        const totalResolved = await Ticket.countDocuments({
+            userId: userId,
+            status: 'resolved' 
+        });
+
+       
+        res.status(200).json({
+            totalSent: totalSent,
+            totalResolved: totalResolved,
+        });
+
+    } catch (error) {
+        console.error('Erreur lors de la récupération des statistiques de signalements:', error);
+        res.status(500).json({ message: 'Erreur serveur lors de la récupération des statistiques.' });
+    }
+
+});
+
 // Démarrer le serveur
 app.listen(PORT, () => {
     console.log(`🚀 Serveur démarré sur le port ${PORT}`);
