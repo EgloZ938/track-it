@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
+const axios = require('axios');
 require('dotenv').config();
 
 const app = express();
@@ -66,8 +67,15 @@ const ticketSchema = new mongoose.Schema({
     },
     description: {type: String, required: true},
     location: {
-        latitude: Number,
-        longitude: Number,
+        latitude: {
+        type: Number,
+        required: true 
+    },
+    longitude: {
+        type: Number,
+        required: true 
+    },
+        
     },
     status: {
         type: String,
@@ -105,6 +113,52 @@ const authenticateToken = (req, res, next) => {
         next();
     });
 };
+
+
+
+const NAVITIA_BASE_URL = "https://prim.iledefrance-mobilites.fr/marketplace/v2/navitia";
+
+// Fonction pour récupérer les perturbations Navitia
+async function fetchNavitiaDisruptions() {
+    const url = `${NAVITIA_BASE_URL}/disruptions`;
+    const navitiaApiKey = process.env.NAVITIA_API_KEY;
+
+    if (!navitiaApiKey) {
+        console.error("Erreur: NAVITIA_API_KEY n'est pas défini dans les variables d'environnement.");
+        throw new Error("Clé API Navitia manquante.");
+    }
+
+    try {
+        const response = await axios.get(url, {
+            headers: {
+                "apikey": navitiaApiKey,
+                "Accept": "application/json"
+            }
+        });
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error(`Erreur Navitia : ${error.response?.status || 'N/A'} - ${error.response?.data?.message || error.message}`);
+            throw new Error(error.response?.data?.message || "Erreur lors de la connexion à l'API Navitia");
+        } else {
+            console.error("Erreur inattendue lors de l'appel Navitia :", error);
+            throw new Error("Erreur inattendue lors de la récupération des données Navitia");
+        }
+    }
+}
+
+// Nouvelle route publique pour les perturbations Navitia
+app.get('/api/navitia/disruptions', async (req, res) => {
+    try {
+        const data = await fetchNavitiaDisruptions();
+        res.json(data);
+    } catch (error) {
+        // Gérer les erreurs de la fonction fetchNavitiaDisruptions
+        res.status(500).json({ message: error.message });
+    }
+});
+
+
 
 // Routes d'authentification
 
@@ -318,6 +372,8 @@ app.listen(PORT, () => {
     console.log(`🚀 Serveur démarré sur le port ${PORT}`);
     console.log(`📱 Track'IT Backend API prêt !`);
     console.log(`🔗 MongoDB connecté à: ${process.env.MONGODB_URI ? 'Atlas Cloud' : 'Local'}`);
+    console.log(`Navitia API Endpoint: http://localhost:${PORT}/api/navitia/disruptions`); 
+    console.log(`Tous les signalements (authentifiés): http://localhost:${PORT}/api/tickets/all`); 
 });
 
 // Gestion des erreurs MongoDB

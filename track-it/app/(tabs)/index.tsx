@@ -249,7 +249,7 @@ export default function EcranSignalement() {
   };
 
   const soumettreSignalement = async () => {
-  if (!typeSelectionne || !description || !ligneSelectionnee) {
+  if (!typeSelectionne || !description || !ligneSelectionnee || !localisation) {
     Alert.alert('Erreur', 'Veuillez remplir tous les champs obligatoires');
     return;
   }
@@ -258,47 +258,33 @@ export default function EcranSignalement() {
 
   try {
     const ticketData = {
-      // 1. 'type' : Le type de problème sélectionné
-      // Le backend attend un champ 'type', et votre frontend le stocke dans 'typeSelectionne'.
+
       type: typeSelectionne,
 
-      // 2. 'transportLine' : Les détails de la ligne de transport
-      // Votre backend attend un objet pour 'transportLine'.
-      // Assurez-vous d'envoyer les propriétés que votre modèle Mongoose attend pour 'transportLine'.
-      // D'après votre code, 'id_line', 'name_line', et 'transportmode' sont pertinents.
+
       transportLine: {
         id_line: ligneSelectionnee.id_line,
         name_line: ligneSelectionnee.name_line,
         transportmode: ligneSelectionnee.transportmode,
       },
 
-      // 3. 'description' : La description du problème
-      // Le backend attend 'description', qui est stockée dans votre état 'description'.
+   
       description: description,
 
-      // 4. 'location' : La localisation géographique (optionnel si non disponible)
-      // Votre backend attend un objet pour 'location'.
-      // Si 'localisation' existe (que l'utilisateur a autorisé la géolocalisation), on envoie ses coordonnées.
-      // Sinon, on envoie 'null'. Assurez-vous que votre schéma Mongoose pour 'location' gère les propriétés 'latitude' et 'longitude'.
+  
       location: localisation ? {
         latitude: localisation.coords.latitude,
         longitude: localisation.coords.longitude,
-        // Ajoutez ici d'autres propriétés de localisation si votre schéma Mongoose les définit.
-        // Par exemple: accuracy, altitude, timestamp (de la localisation)
-      } : null, // Si 'localisation' est null ou undefined, on envoie null
+       
+      } : null, 
 
-      // Note : 'userId', 'timestamp' ou 'statut' ne sont généralement PAS envoyés depuis le frontend
-      // si votre backend les génère ou les déduit à la réception du ticket.
-      // Votre route server.js utilise 'req.user.userId', donc pas besoin de l'envoyer.
+   
     };
 
-    // --- Appel API ---
-    // Assurez-vous que cette URL est correcte et correspond à votre configuration backend
-    // et à l'URL de base configurée dans votre authService (si vous l'utilisez pour d'autres appels).
-    // Exemple : si votre backend est sur 'http://192.168.1.140:3000' et votre route est '/api/tickets'
-    const backendUrl = 'http://192.168.1.140:3000/api/tickets'; // Adaptez cette URL à votre environnement réel
+  
+    const backendUrl = 'http://192.168.1.140:3000/api/tickets'; 
 
-    const token = await authService.getToken(); // Récupérer le token d'authentification
+    const token = await authService.getToken(); 
     if (!token) {
         throw new Error('Aucun token d\'authentification trouvé. Veuillez vous connecter.');
     }
@@ -307,7 +293,7 @@ export default function EcranSignalement() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`, // Envoyer le token pour l'authentification
+        'Authorization': `Bearer ${token}`, 
       },
       body: JSON.stringify(ticketData),
     });
@@ -546,7 +532,9 @@ export default function EcranSignalement() {
 
           {/* Section Localisation */}
           <View style={styles.section}>
-            <Text style={styles.titreSectionIcone}> Localisation (optionnel)</Text>
+            <Text 
+            style={styles.titreSectionIcone}> Localisation <Text style={styles.obligatoire}>*</Text>
+            </Text>
             <TouchableOpacity
               onPress={obtenirLocalisation}
               style={styles.boutonLocalisation}

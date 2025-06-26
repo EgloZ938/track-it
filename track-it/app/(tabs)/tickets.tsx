@@ -131,7 +131,7 @@ export default function TicketsScreen() {
             case 'rail':
                     return 'RER';
                 
-  
+            case 'metro':
                 return 'Métro';
             case 'bus':
                 return 'Bus';
