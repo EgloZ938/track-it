@@ -8,6 +8,9 @@
     "scheme": "trackit",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+     "extra": {
+      "backendBaseUrl": "http://192.168.1.140:3000" 
+    },
     "ios": {
       "supportsTablet": true
     },

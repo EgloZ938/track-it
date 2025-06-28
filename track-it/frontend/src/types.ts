@@ -73,24 +73,26 @@ export interface LigneTransport {
 
 // Type pour un ticket de signalement (EcranSignalement, MapScreen, Backend)
 export interface Ticket {
-  _id?: string; // Ajouté car le backend générera un ID
-  user?: string; // ID de l'utilisateur qui a créé le ticket (optionnel, le backend le déduira du token)
-  type: string; // Ex: 'Propreté', 'Équipement'
+  _id?: string; 
+  user?: string; 
+  type: string; 
   description: string;
   transportLine: {
     id_line: string;
     name_line: string;
     transportmode: string;
-    shortname_line?: string; // Ajouté pour faciliter l'affichage
+    shortname_line?: string;
+     picto_transportmode?: string;
+     picto_line?: string; 
   };
   location: {
     latitude: number;
     longitude: number;
     accuracy?: number | null;
   };
-  status?: 'open' | 'in_progress' | 'resolved' | 'closed'; // Statut du ticket
-  createdAt?: string; // Date de création
-  updatedAt?: string; // Date de dernière mise à jour
+  status?: 'open' | 'in_progress' | 'resolved' | 'closed'; 
+  createdAt?: string; 
+  updatedAt?: string; 
 }
 
 // ==================== TYPES SPÉCIFIQUES À NAVITIA (pour les perturbations) ====================
@@ -102,11 +104,11 @@ export interface NavitiaDisruption {
   severity: {
     effect: string; // Ex: 'NO_SERVICE', 'REDUCED_SERVICE', 'SIGNIFICANT_DELAY'
     priority: number;
-    name: string; // Ex: 'Interruption de service'
+    name: string; 
   };
   application_periods: {
-    begin: string; // Date et heure de début (ISO string)
-    end?: string; // Date et heure de fin (ISO string, peut être absente si en cours)
+    begin: string; 
+    end?: string; 
   }[];
   messages: {
     text: string;
@@ -118,7 +120,7 @@ export interface NavitiaDisruption {
   affected_objects: {
     pt_object: {
       line?: {
-        id: string; // ID Navitia de la ligne
+        id: string; 
         name: string;
         code: string;
         color: string;
@@ -128,7 +130,7 @@ export interface NavitiaDisruption {
         coord?: { lat: number; lon: number };
       };
       stop_point?: {
-        id: string; // ID Navitia du point d'arrêt
+        id: string; 
         name: string;
         coord: { lat: number; lon: number };
       };
@@ -141,21 +143,21 @@ export interface NavitiaDisruption {
     };
   }[];
   updated_at: string;
-  // ... autres champs pertinents de l'API Navitia si vous en avez besoin
+  
 }
 
 // Type pour la réponse de l'API Navitia (MapScreen)
 export interface NavitiaApiResponse {
   disruptions: NavitiaDisruption[];
-  // ... autres champs comme pagination, context, etc.
+
 }
 
 // Types pour les requêtes de l'API Navitia (Backend, potentiellement MapScreen si vous passez des params)
 export interface GetDisruptionsParams {
   latitude?: number;
   longitude?: number;
-  distance?: number; // en mètres
-  fromDateTime?: string; // ISO string
-  untilDateTime?: string; // ISO string
+  distance?: number; 
+  fromDateTime?: string; 
+  untilDateTime?: string; 
   count?: number;
 }

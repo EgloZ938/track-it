@@ -1,18 +1,23 @@
 import React, { useState, useCallback } from 'react'; // Assure-toi que useCallback est importé
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import authService from '@/services/authService';
 import { router } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native'; // Importe useFocusEffect
+import { useFocusEffect } from '@react-navigation/native'; 
 
-// --- TYPES (Assure-toi que TicketStatus correspond bien à tes données backend) ---
-type TicketStatus = 'pending' | 'in_progress' | 'resolved'; // Assuré d'être en anglais pour correspondre au backend
+
+type TicketStatus = 'pending' | 'in_progress' | 'resolved'; 
 
 type TicketData = {
     id_line: string;
     name_line: string;
     transportmode: string;
+    picto_line?: string; 
+    picto_transportmode?: string;
+    shortname_line?: string;  
+    colourweb_hexa?: string; 
+    textcolourweb_hexa?: string; 
 };
 
 type LocationData = {
@@ -32,7 +37,7 @@ type RealTicket = {
     updatedAt: string;
 };
 
-// --- CONFIGURATION DES STATUTS ET TYPES (reste inchangé) ---
+
 const statusConfig = {
     pending: { label: 'En attente', color: '#F59E0B', icon: 'time' },
     in_progress: { label: 'En cours', color: '#3B82F6', icon: 'construct' },
@@ -51,22 +56,21 @@ const typeIcons = {
 // --- COMPOSANT PRINCIPAL ---
 export default function TicketsScreen() {
     const [tickets, setTickets] = useState<RealTicket[]>([]);
-    const [isLoading, setIsLoading] = useState(true); // Indique si le loader principal doit être affiché
+    const [isLoading, setIsLoading] = useState(true); 
     const [error, setError] = useState<string | null>(null);
-    const [isRefreshing, setIsRefreshing] = useState(false); // Indique si le "pull-to-refresh" est en cours
+    const [isRefreshing, setIsRefreshing] = useState(false); 
 
     const getStatusStyle = (status: TicketStatus) => ({
         ...styles.statusBadge,
         backgroundColor: statusConfig[status].color,
     });
 
-    // --- Fonction de récupération des tickets ---
-    // Elle prend un paramètre pour contrôler si le grand indicateur de chargement doit s'afficher
+
     const fetchTickets = async (showMainLoader: boolean = true) => {
         if (showMainLoader) {
-            setIsLoading(true); // Active le grand ActivityIndicator au centre de l'écran
+            setIsLoading(true); 
         }
-        setError(null); // Réinitialise les erreurs précédentes
+        setError(null); 
 
         try {
             const token = await authService.getToken();
@@ -76,10 +80,10 @@ export default function TicketsScreen() {
                 return;
             }
 
-            const backendBaseUrl = 'http://192.168.1.140:3000'; // Ton adresse IP locale
+            const backendBaseUrl = 'http://192.168.1.140:3000'; 
             const apiUrl = `${backendBaseUrl}/api/tickets`;
 
-            console.log('🌐 Récupération des tickets depuis :', apiUrl);
+            console.log(' Récupération des tickets depuis :', apiUrl);
 
             const response = await fetch(apiUrl, {
                 method: 'GET',
@@ -96,11 +100,11 @@ export default function TicketsScreen() {
                 throw new Error(data.message || `Échec de la récupération des signalements (code: ${response.status}).`);
             }
 
-            console.log('📦 Signalements reçus :', data);
+            console.log(' Signalements reçus :', data);
             setTickets(data);
 
         } catch (err: any) {
-            console.error('❌ Erreur lors du chargement des signalements :', err);
+            console.error(' Erreur lors du chargement des signalements :', err);
             setError(err.message || 'Impossible de charger vos signalements.');
             if (err.message.includes('Non authentifié') || err.message.includes('Token invalide')) {
                 authService.logout();
@@ -125,7 +129,7 @@ export default function TicketsScreen() {
         }, [tickets.length, error]) 
     );
 
-    // --- Fonction utilitaire pour mapper les modes de transport de l'API à des noms d'affichage ---
+    // --- Fonction pour obtenir le mode de transport à afficher ---
     const getDisplayTransportMode = (apiMode: string, lineName: string): string => {
         switch (apiMode.toLowerCase()) {
             case 'rail':
@@ -150,31 +154,59 @@ export default function TicketsScreen() {
 
         
         const displayTransportMode = getDisplayTransportMode(item.transportLine.transportmode, item.transportLine.name_line);
+        const hasLinePicto = item.transportLine.colourweb_hexa && item.transportLine.shortname_line;
+
 
         return (
-            <TouchableOpacity
+          <TouchableOpacity
                 key={item._id}
                 style={styles.ticketCard}
                 onPress={() => router.push(`/ticket/${item._id}`)}
             >
+                {/* TOP SECTION (HEADER) */}
                 <View style={styles.ticketHeader}>
                     <View style={styles.ticketInfo}>
-                        <View style={styles.iconContainer}>
-                            <Ionicons
-                                name={ticketTypeIcon as any}
-                                size={20}
-                                color="#6B7280"
-                            />
-                        </View>
+                        {/* 1. Amélioration du Picto de Ligne */}
+                        {hasLinePicto ? (
+                            <View
+                                style={[
+                                    styles.linePictoCircle,
+                                    { backgroundColor: `#${item.transportLine.colourweb_hexa?.replace('#', '')}` || '#0EA5E9' }
+                                ]}
+                            >
+                                <Text
+                                    style={[
+                                        styles.linePictoText,
+                                        { color: `#${item.transportLine.textcolourweb_hexa?.replace('#', '')}` || 'white' }
+                                    ]}
+                                   
+                                    adjustsFontSizeToFit 
+                                    numberOfLines={1} 
+                                >
+                                    {item.transportLine.shortname_line || item.transportLine.name_line || 'N/A'}
+                                </Text>
+                            </View>
+                        ) : (
+                            <View style={styles.iconContainer}>
+                                <Ionicons
+                                    name="train"
+                                    size={20}
+                                    color="#6B7280"
+                                />
+                            </View>
+                        )}
+
                         <View style={styles.lineInfoContainer}>
-                            {/* Affichage combiné du mode de transport et du nom de la ligne */}
-                            <Text style={styles.lineName}>
+                 
+                            <Text
+                                style={styles.lineName}
+                                numberOfLines={1} 
+                                ellipsizeMode="tail" 
+                            >
                                 {displayTransportMode} {item.transportLine.name_line || 'Ligne inconnue'}
                             </Text>
-                            {/* Pour les logos, on ajoutera ici une fois que tu auras les assets et les chemins définis */}
+                     
                         </View>
-                        {/* Assure-toi que la date est bien dans un <Text> */}
-                        <Text style={styles.date}>{new Date(item.createdAt).toLocaleDateString()}</Text>
                     </View>
                     <View style={getStatusStyle(item.status)}>
                         <Text style={styles.statusText}>
@@ -183,17 +215,39 @@ export default function TicketsScreen() {
                     </View>
                 </View>
 
-                <Text style={styles.description}>{item.description}</Text>
-
-                <View style={styles.ticketFooter}>
-                    <Ionicons
-                        name={ticketStatusConfig.icon as any}
-                        size={16}
-                        color="#6B7280"
-                    />
-                    <Text style={styles.footerText}>
-                        Dernière mise à jour: {new Date(item.updatedAt).toLocaleDateString()}
+ 
+                <View style={styles.descriptionContainer}>
+                    <Text
+                        style={styles.descriptionText}
+                        numberOfLines={1} 
+                        ellipsizeMode="tail" 
+                    >
+                        {item.description}
                     </Text>
+                </View>
+
+              
+                <View style={styles.ticketFooter}>
+                    <View style={styles.footerLeft}>
+                        {/* <Ionicons
+                            name="time-outline" // Icône pour la date de création
+                            size={16}
+                            color="#6B7280"
+                        /> */}
+                        <Text style={styles.footerText}>
+                            Créé le: {new Date(item.createdAt).toLocaleDateString()}
+                        </Text>
+                    </View>
+                    {/* <View style={styles.footerRight}>
+                        <Ionicons
+                            name={ticketStatusConfig.icon as any} // Icône du statut
+                            size={16}
+                            color="#6B7280"
+                        />
+                        <Text style={styles.footerText}>
+                            MàJ: {new Date(item.updatedAt).toLocaleDateString()}
+                        </Text>
+                    </View> */}
                 </View>
             </TouchableOpacity>
         );
@@ -225,8 +279,8 @@ export default function TicketsScreen() {
                         <Text style={styles.subtitle}>Suivez l'état de vos signalements</Text>
                     </View>
 
-                    {/* --- Logique d'affichage conditionnel des messages / liste de tickets --- */}
-                    {isLoading ? ( // Affiché uniquement si isLoading est vrai (premier chargement ou après une erreur)
+                   
+                    {isLoading ? ( 
                         <View style={styles.messageContainer}>
                             <ActivityIndicator size="large" color="#0EA5E9" />
                             <Text style={styles.messageText}>Chargement de vos signalements...</Text>
@@ -256,7 +310,7 @@ export default function TicketsScreen() {
     );
 }
 
-// --- STYLES (Utilise tes styles existants, plus quelques ajouts pour lineInfoContainer si tu n'avais pas) ---
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -267,16 +321,16 @@ const styles = StyleSheet.create({
         position: 'relative',
     },
     formeDecorative1: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        height: 300,
-        backgroundColor: 'linear-gradient(135deg, #0EA5E9 0%, #3B82F6 100%)', // Note: linear-gradient n'est pas supporté directement par React Native StyleSheet. Tu auras besoin d'une librairie comme 'expo-linear-gradient' si tu veux un vrai dégradé CSS. Pour l'instant, ça affichera la première couleur ou une couleur par défaut.
-        borderBottomLeftRadius: 50,
-        borderBottomRightRadius: 50,
-        opacity: 0.9,
-    },
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 300,
+    // backgroundColor: 'linear-gradient(135deg, #0EA5E9 0%, #3B82F6 100%)',
+    borderBottomLeftRadius: 50,
+    borderBottomRightRadius: 50,
+    opacity: 0.9,
+  },
     formeDecorative2: {
         position: 'absolute',
         top: 80,
@@ -321,6 +375,18 @@ const styles = StyleSheet.create({
         shadowRadius: 2,
         elevation: 2,
     },
+
+     descriptionContainer: { 
+        flex: 1, 
+        justifyContent: 'center', 
+        paddingVertical: 4, 
+    },
+    descriptionText: {
+        color: '#374151',
+        lineHeight: 20,
+        
+    },
+
     ticketHeader: {
         flexDirection: 'row',
         alignItems: 'flex-start',
@@ -337,20 +403,36 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         marginRight: 12,
     },
-    lineInfoContainer: { // Nouveau style pour le conteneur du mode et de la ligne
-        flexDirection: 'row', // Pour aligner horizontalement le texte et potentiellement les logos
+ 
+     linePictoCircle: {
+        width: 48, 
+        height: 48,
+        borderRadius: 24,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 12,
+        overflow: 'hidden', 
+        paddingHorizontal: 2, 
+    },
+    linePictoText: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        
+    },
+
+    lineInfoContainer: {
+        flexDirection: 'row',
         alignItems: 'center',
     },
     lineName: {
         fontWeight: '600',
         color: '#111827',
         fontSize: 16,
-        // marginBottom: 6, // Enlève si tu veux aligner sur une seule ligne
     },
     date: {
         fontSize: 14,
         color: '#6B7280',
-        marginLeft: 10, // Ajoute un peu d'espace entre le nom de la ligne et la date
+        marginLeft: 10,
     },
     statusBadge: {
         paddingHorizontal: 12,
@@ -376,7 +458,6 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#6B7280',
     },
-    // Ajoute ces styles pour les messages d'état (chargement, erreur, vide)
     messageContainer: {
         flex: 1,
         justifyContent: 'center',
@@ -384,7 +465,7 @@ const styles = StyleSheet.create({
         paddingVertical: 50,
         backgroundColor: 'white',
         borderRadius: 8,
-        margin: 16, // Pour qu'il apparaisse dans la zone des cartes
+        margin: 16,
     },
     messageText: {
         marginTop: 10,

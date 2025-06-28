@@ -63,7 +63,9 @@ const ticketSchema = new mongoose.Schema({
     shortname_line: { type: String }, // Peut-être optionnel
     name_line: { type: String, required: true },
     transportmode: { type: String, required: true },
-    operatorname: { type: String }, 
+    operatorname: { type: String },
+    colourweb_hexa: { type: String }, 
+    textcolourweb_hexa: { type: String }, 
     },
     description: {type: String, required: true},
     location: {
@@ -315,6 +317,7 @@ app.get('/api/tickets/all', authenticateToken, async (req, res) => {
     }
 });
 
+
 // Mettre à jour le statut d'un signalement (pour les administrateurs)
 app.patch('/api/tickets/:id/status', authenticateToken, async (req, res) => {
     try {
@@ -365,6 +368,19 @@ app.get('/api/tickets/stats', authenticateToken, async (req, res) => {
         res.status(500).json({ message: 'Erreur serveur lors de la récupération des statistiques.' });
     }
 
+});
+
+app.get('/api/tickets/:id', async (req, res) => {
+    try {
+        const ticket = await Ticket.findById(req.params.id).populate('transportLine'); 
+        if (!ticket) {
+            return res.status(404).json({ message: 'Signalement non trouvé' });
+        }
+        res.status(200).json(ticket); 
+    } catch (error) {
+        console.error("Erreur lors de la récupération du signalement :", error);
+        res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    }
 });
 
 // Démarrer le serveur

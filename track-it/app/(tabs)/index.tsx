@@ -1111,6 +1111,9 @@ export default function EcranSignalement() {
           name_line: ligneSelectionnee.name_line,
           transportmode: ligneSelectionnee.transportmode,
           shortname_line: ligneSelectionnee.shortname_line,
+          operatorname: ligneSelectionnee.operatorname, 
+          colourweb_hexa: ligneSelectionnee.colourweb_hexa, 
+          textcolourweb_hexa: ligneSelectionnee.textcolourweb_hexa, 
         },
         description: description,
         location: localisation ? {
