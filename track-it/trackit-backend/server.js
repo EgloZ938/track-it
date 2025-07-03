@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const axios = require('axios');
 require('dotenv').config();
+const { format } = require('date-fns');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -121,8 +122,50 @@ const authenticateToken = (req, res, next) => {
 const NAVITIA_BASE_URL = "https://prim.iledefrance-mobilites.fr/marketplace/v2/navitia";
 
 // Fonction pour récupérer les perturbations Navitia
-async function fetchNavitiaDisruptions() {
-    const url = `${NAVITIA_BASE_URL}/disruptions`;
+// async function fetchNavitiaDisruptions() {
+//     const url = `${NAVITIA_BASE_URL}/disruptions`;
+//     const navitiaApiKey = process.env.NAVITIA_API_KEY;
+
+//     if (!navitiaApiKey) {
+//         console.error("Erreur: NAVITIA_API_KEY n'est pas défini dans les variables d'environnement.");
+//         throw new Error("Clé API Navitia manquante.");
+//     }
+
+//     try {
+//         const response = await axios.get(url, {
+//             headers: {
+//                 "apikey": navitiaApiKey,
+//                 "Accept": "application/json"
+//             }
+//         });
+//         return response.data;
+//     } catch (error) {
+//         if (axios.isAxiosError(error)) {
+//             console.error(`Erreur Navitia : ${error.response?.status || 'N/A'} - ${error.response?.data?.message || error.message}`);
+//             throw new Error(error.response?.data?.message || "Erreur lors de la connexion à l'API Navitia");
+//         } else {
+//             console.error("Erreur inattendue lors de l'appel Navitia :", error);
+//             throw new Error("Erreur inattendue lors de la récupération des données Navitia");
+//         }
+//     }
+// }
+
+// // Nouvelle route publique pour les perturbations Navitia
+// app.get('/api/navitia/disruptions', async (req, res) => {
+//     try {
+//         const data = await fetchNavitiaDisruptions();
+//         res.json(data);
+//     } catch (error) {
+//         // Gérer les erreurs de la fonction fetchNavitiaDisruptions
+//         res.status(500).json({ message: error.message });
+//     }
+// });
+
+async function fetchNavitiaDisruptions(params = {}) {
+    // Construire l'URL avec les paramètres de requête
+    const queryParams = new URLSearchParams(params).toString();
+    const url = `${NAVITIA_BASE_URL}/disruptions${queryParams ? `?${queryParams}` : ''}`;
+    
     const navitiaApiKey = process.env.NAVITIA_API_KEY;
 
     if (!navitiaApiKey) {
@@ -131,6 +174,7 @@ async function fetchNavitiaDisruptions() {
     }
 
     try {
+        console.log(`Appel à Navitia URL: ${url}`); // Utile pour le débogage
         const response = await axios.get(url, {
             headers: {
                 "apikey": navitiaApiKey,
@@ -141,7 +185,11 @@ async function fetchNavitiaDisruptions() {
     } catch (error) {
         if (axios.isAxiosError(error)) {
             console.error(`Erreur Navitia : ${error.response?.status || 'N/A'} - ${error.response?.data?.message || error.message}`);
-            throw new Error(error.response?.data?.message || "Erreur lors de la connexion à l'API Navitia");
+            // Loguer les données de réponse complètes pour un meilleur débogage
+            if (error.response?.data) {
+                console.error("Détails de la réponse d'erreur Navitia:", error.response.data);
+            }
+            throw new Error(error.response?.data?.message || `Erreur lors de la connexion à l'API Navitia (${error.response?.status || 'Inconnu'})`);
         } else {
             console.error("Erreur inattendue lors de l'appel Navitia :", error);
             throw new Error("Erreur inattendue lors de la récupération des données Navitia");
@@ -150,17 +198,46 @@ async function fetchNavitiaDisruptions() {
 }
 
 // Nouvelle route publique pour les perturbations Navitia
+// Cette route recevra maintenant des paramètres de requête de l'application frontend
 app.get('/api/navitia/disruptions', async (req, res) => {
     try {
-        const data = await fetchNavitiaDisruptions();
+        // Extraire les paramètres de la requête du frontend
+        const { count, fromDateTime, untilDateTime } = req.query;
+
+        // Préparer les paramètres à envoyer à Navitia
+        const navitiaParams = {};
+        if (count) {
+            navitiaParams.count = parseInt(count, 10); // S'assurer que c'est un nombre
+        } else {
+            navitiaParams.count = 200; // Définir une valeur par défaut plus élevée si non spécifié
+        }
+
+        // Pour les dates, Navitia attend le format YYYYMMDDTHHMMSS
+        // Utilisez from_datetime et until_datetime
+        if (fromDateTime) {
+            // fromDateTime devrait être une date ISO string du frontend, convertie au format Navitia
+            // Exemple: "2025-07-04T01:00:00Z" -> "20250704T010000"
+            const dateObj = new Date(fromDateTime);
+            navitiaParams.from_datetime = format(dateObj, 'yyyyMMddTHHmmss'); // Assurez-vous d'importer date-fns ou une logique similaire
+        } else {
+            // Par défaut, nous voulons les perturbations actuelles ou futures
+            // Donc from_datetime serait la date actuelle.
+            const now = new Date();
+            navitiaParams.from_datetime = format(now, 'yyyyMMddTHHmmss');
+        }
+
+        if (untilDateTime) {
+            const dateObj = new Date(untilDateTime);
+            navitiaParams.until_datetime = format(dateObj, 'yyyyMMddTHHmmss');
+        }
+
+        const data = await fetchNavitiaDisruptions(navitiaParams);
         res.json(data);
     } catch (error) {
-        // Gérer les erreurs de la fonction fetchNavitiaDisruptions
-        res.status(500).json({ message: error.message });
+        console.error("Erreur dans la route /api/navitia/disruptions:", error);
+        res.status(500).json({ message: error.message || "Erreur interne du serveur" });
     }
 });
-
-
 
 // Routes d'authentification
 

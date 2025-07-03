@@ -96,7 +96,11 @@ export default function ProfileScreen() {
         { icon: 'person', label: 'Nom d\'utilisateur', value: `${user?.firstName} ${user?.lastName}` },
         { icon: 'mail', label: 'Email', value: user?.email },
         { icon: 'stats-chart', label: 'Signalements envoyés', value: isLoadingStats ? '...' : stats.totalSent.toString() },
-        { icon: 'checkmark-circle', label: 'Problèmes résolus', value: isLoadingStats ? '...' : stats.totalResolved.toString() },
+        { icon: 'checkmark-circle', label: 'Problèmes résolus', value: isLoadingStats ? '...' : stats.totalResolved.toString() }
+    ];
+
+    const retardedMenuItems: MenuItem[] = [
+        {icon : 'ticket', label: 'Tickets de retard', value: isLoadingStats ? '...' : (stats.totalSent - stats.totalResolved).toString() }
     ];
 
     const settingsItems: MenuItem[] = [
@@ -164,6 +168,26 @@ export default function ProfileScreen() {
                                     <Text style={styles.menuItemValue}>{item.value}</Text>
                                 )}
                             </View>
+                        ))}
+                    </View>
+
+                    {/* Tickets */}
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>Tickets</Text>
+                        {retardedMenuItems.map((item, index) => (
+                            <TouchableOpacity key={index} style={[
+                                styles.menuItem,
+                                index === retardedMenuItems.length - 1 && styles.lastMenuItem
+                            ]}>
+                                <View style={styles.menuItemLeft}>
+                                    <Ionicons name={item.icon as any} size={20} color="#6B7280" />
+                                    <Text style={styles.menuItemLabel}>{item.label}</Text>
+                                </View>
+                                {item.value && (
+                                    <Text style={styles.menuItemValue}>{item.value}</Text>
+                                )}
+                                <Ionicons name="chevron-forward" size={20} color="#6B7280" />
+                            </TouchableOpacity>
                         ))}
                     </View>
 

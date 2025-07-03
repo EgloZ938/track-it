@@ -61,15 +61,22 @@ export default function TabLayout() {
           ),
         }}
       />
-      <Tabs.Screen
-        name="profile"
+       <Tabs.Screen
+        name="traffic-info" 
         options={{
-          title: 'Profil',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person" size={size} color={color} />
-          ),
+          title: 'Trafic',
+          tabBarIcon: ({ color }) => <Ionicons name="train" size={24} color={color} />, 
         }}
       />
+        <Tabs.Screen
+          name="profile"
+          options={{
+            title: 'Profil',
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="person" size={size} color={color} />
+            ),
+          }}
+        />
     </Tabs>
   );
 }
