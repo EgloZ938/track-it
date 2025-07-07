@@ -5,6 +5,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/contexts/AuthContext';
 import authService from '@/services/authService'; 
 import { useFocusEffect } from '@react-navigation/native'; 
+import api from '@/services/apiService';
+import axios from 'axios';
 
 type MenuItem = {
     icon: string;
@@ -31,66 +33,97 @@ export default function ProfileScreen() {
         }
     };
 
-       const fetchStats = async () => { // Pas besoin de showMainLoader ici, la logique de useFocusEffect/RefreshControl le gère
-        // Si c'est un refresh manuel (pull-to-refresh), on met isRefreshing à true.
-        // Sinon, si c'est le premier chargement ou suite à une erreur, on met isLoadingStats à true.
-        if (!isRefreshing && stats.totalSent === 0 && !errorStats) {
-             setIsLoadingStats(true);
+    const fetchStats = async () => {
+    // Pas besoin de showMainLoader ici, la logique de useFocusEffect/RefreshControl le gère
+    // Si c'est un refresh manuel (pull-to-refresh), on met isRefreshing à true.
+    // Sinon, si c'est le premier chargement ou suite à une erreur, on met isLoadingStats à true.
+    if (!isRefreshing && stats.totalSent === 0 && !errorStats) {
+        setIsLoadingStats(true);
+    }
+    setErrorStats(null); 
+
+    try {
+        // Avec votre intercepteur Axios, vous n'avez pas besoin de récupérer le token ici
+        // et de l'ajouter manuellement aux headers. L'intercepteur le fera pour vous.
+        // MAIS, la vérification du token ici est utile pour un message d'erreur spécifique ou une redirection immédiate.
+        const token = await authService.getToken(); 
+        if (!token) {
+            setErrorStats('Non authentifié. Veuillez vous connecter pour voir vos statistiques.');
+            logout();
+            return;
         }
-        setErrorStats(null); // Toujours réinitialiser les erreurs au début d'un fetch
 
-        try {
-            const token = await authService.getToken();
-            if (!token) {
-                setErrorStats('Non authentifié. Veuillez vous connecter pour voir vos statistiques.');
-                logout();
-                return;
+        // --- C'est ici que les changements sont les plus visibles ---
+        // L'URL de base (http://192.168.1.13:3000) est déjà définie dans apiService.ts
+        // Vous n'avez plus besoin de la construire ici.
+        // Il suffit de donner le chemin relatif à l'API.
+        const apiUrlPath = '/tickets/stats'; 
+
+        console.log('🌐 Récupération des statistiques depuis :', api.defaults.baseURL + apiUrlPath); // Pour le log, on peut reconstruire l'URL
+
+        const response = await api.get(apiUrlPath); // <-- MODIFICATION : Utilisation de api.get()
+
+        // Axios gère automatiquement le parsing JSON, les données sont dans response.data
+        const data = response.data; // <-- MODIFICATION : Les données sont directement ici
+
+        // Axios rejette automatiquement la promesse pour les statuts non-2xx.
+        // Donc, le bloc if (!response.ok) devient superflu ici, car une erreur le catchera.
+        // if (!response.ok) { ... } est remplacé par le comportement par défaut d'Axios.
+
+        console.log('📦 Statistiques reçues :', data);
+        setStats(data);
+
+    } catch (err: any) { // Le type 'any' est utilisé ici pour la démo, mais il est préférable de typer l'erreur AxiosError
+        console.error('❌ Erreur lors du chargement des statistiques :', err);
+        
+        // Gérer les erreurs Axios spécifiquement pour des messages plus précis
+        if (axios.isAxiosError(err)) { // Vérifie si l'erreur vient d'Axios
+            if (err.response) {
+                // Le serveur a répondu avec un statut d'erreur (ex: 401, 403, 500)
+                console.error('Erreur de réponse du serveur:', err.response.status, err.response.data);
+                // Si c'est une erreur d'authentification gérée par l'intercepteur,
+                // l'intercepteur aura déjà appelé `logout()`.
+                // Mais on peut quand même afficher un message plus précis ici.
+                if (err.response.status === 401 || err.response.status === 403) {
+                    setErrorStats('Session expirée ou non autorisée. Veuillez vous reconnecter.');
+                    // L'intercepteur devrait déjà gérer le logout, mais on peut le mettre ici aussi si besoin.
+                    logout(); 
+                } else {
+                    setErrorStats(err.response.data.message || `Erreur du serveur (${err.response.status}) : Impossible de charger vos statistiques.`);
+                }
+            } else if (err.request) {
+                // La requête a été faite mais aucune réponse n'a été reçue (problème réseau/serveur injoignable)
+                console.error('Aucune réponse du serveur (problème réseau) :', err.request);
+                setErrorStats('Impossible de se connecter au serveur. Vérifiez votre connexion ou l\'état du serveur.');
+            } else {
+                // Autre chose s'est passé en configurant la requête
+                console.error('Erreur de configuration de requête Axios:', err.message);
+                setErrorStats('Une erreur inattendue est survenue.');
             }
-
-            const backendBaseUrl = 'http://192.168.1.140:3000';
-            const apiUrl = `${backendBaseUrl}/api/tickets/stats`;
-
-            console.log('🌐 Récupération des statistiques depuis :', apiUrl);
-
-            const response = await fetch(apiUrl, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                console.error('Erreur réponse backend lors de la récupération des statistiques :', data);
-                throw new Error(data.message || `Échec de la récupération des statistiques (code: ${response.status}).`);
-            }
-
-            console.log('📦 Statistiques reçues :', data);
-            setStats(data);
-
-        } catch (err: any) {
-            console.error('❌ Erreur lors du chargement des statistiques :', err);
+        } else {
+            // Erreur non-Axios
             setErrorStats(err.message || 'Impossible de charger vos statistiques.');
             if (err.message.includes('Non authentifié') || err.message.includes('Token invalide')) {
                 logout();
             }
-        } finally {
-            setIsLoadingStats(false); // Désactive le loader principal
-            setIsRefreshing(false); // Désactive l'indicateur de rafraîchissement manuel
         }
-    };
+    } finally {
+        setIsLoadingStats(false); // Désactive le loader principal
+        setIsRefreshing(false); // Désactive l'indicateur de rafraîchissement manuel
+    }
+};
 
-     useFocusEffect(
-        useCallback(() => {
-            console.log("ProfileScreen est focusé, rafraîchissement des statistiques...");
-            fetchStats();
-            return () => {
-               
-            };
-        }, [user]) 
-    );
+// ... (votre useFocusEffect reste inchangé) ...
+useFocusEffect(
+    useCallback(() => {
+        console.log("ProfileScreen est focusé, rafraîchissement des statistiques...");
+        fetchStats();
+        return () => {
+            // Cleanup si nécessaire (ex: annuler une requête en cours)
+        };
+    }, [user])
+);
+
 
     const menuItems: MenuItem[] = [
         { icon: 'person', label: 'Nom d\'utilisateur', value: `${user?.firstName} ${user?.lastName}` },
@@ -118,19 +151,18 @@ export default function ProfileScreen() {
         <SafeAreaView style={styles.container}>
            <ScrollView
                 style={styles.scrollView}
-                // Ceci est l'endroit le plus important :
-                // Le RefreshControl DOIT être passé à la prop `refreshControl` de la ScrollView.
+           
                 refreshControl={
                     <RefreshControl
-                        refreshing={isRefreshing} // Lié à l'état isRefreshing
+                        refreshing={isRefreshing} 
                         onRefresh={() => {
-                            // Quand l'utilisateur tire, active l'indicateur de rafraîchissement
+                            
                             setIsRefreshing(true); 
-                            // Et lance la récupération des tickets, sans afficher le grand loader central
+                          
                             fetchStats(); 
                         }}
-                        tintColor="#0EA5E9" // Couleur de l'icône de chargement (iOS)
-                        colors={['#0EA5E9']} // Couleurs de l'icône de chargement (Android)
+                        tintColor="#0EA5E9" 
+                        colors={['#0EA5E9']} 
                     />
                 }
             >

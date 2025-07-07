@@ -4,17 +4,22 @@ import { Platform } from 'react-native';
 
 const getAPIUrl = () => {
     if (!__DEV__) {
-        return 'https://prod-server.com/api'; 
+        return 'https://prod-server.com/api'; // URL de production, ne pas toucher
     }
 
+    // En mode développement (__DEV__)
     switch (Platform.OS) {
         case 'web':
-            return 'http://localhost:3000/api'; 
+            return 'http://192.168.1.13:3000/api';
         case 'ios':
+            // iOS Simulator et un appareil iOS réel connecté au même réseau que votre Mac/PC peuvent utiliser localhost
+            return 'http://192.168.1.13:3000/api'; 
         case 'android':
-            return 'http://192.168.1.140:3000/api'; 
+            
+            return 'http://192.168.1.13:3000/api'; 
         default:
-            return 'http://localhost:3000/api'; 
+            // Fallback générique en développement
+            return 'http://192.168.1.13:3000/api'; 
     }
 };
 

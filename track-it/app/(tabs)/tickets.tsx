@@ -1,23 +1,24 @@
-import React, { useState, useCallback } from 'react'; // Assure-toi que useCallback est importé
+import React, { useState, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import authService from '@/services/authService';
 import { router } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native'; 
+import { useFocusEffect } from '@react-navigation/native';
+import apiService from '@/services/apiService'; 
 
 
-type TicketStatus = 'pending' | 'in_progress' | 'resolved'; 
+type TicketStatus = 'pending' | 'in_progress' | 'resolved';
 
 type TicketData = {
     id_line: string;
     name_line: string;
     transportmode: string;
-    picto_line?: string; 
+    picto_line?: string;
     picto_transportmode?: string;
-    shortname_line?: string;  
-    colourweb_hexa?: string; 
-    textcolourweb_hexa?: string; 
+    shortname_line?: string;
+    colourweb_hexa?: string;
+    textcolourweb_hexa?: string;
 };
 
 type LocationData = {
@@ -56,9 +57,9 @@ const typeIcons = {
 // --- COMPOSANT PRINCIPAL ---
 export default function TicketsScreen() {
     const [tickets, setTickets] = useState<RealTicket[]>([]);
-    const [isLoading, setIsLoading] = useState(true); 
+    const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [isRefreshing, setIsRefreshing] = useState(false); 
+    const [isRefreshing, setIsRefreshing] = useState(false);
 
     const getStatusStyle = (status: TicketStatus) => ({
         ...styles.statusBadge,
@@ -68,11 +69,13 @@ export default function TicketsScreen() {
 
     const fetchTickets = async (showMainLoader: boolean = true) => {
         if (showMainLoader) {
-            setIsLoading(true); 
+            setIsLoading(true);
         }
-        setError(null); 
+        setError(null);
 
         try {
+            // Le token est déjà géré par l'intercepteur de apiService,
+            // mais vérifier s'il existe avant l'appel est une bonne pratique.
             const token = await authService.getToken();
             if (!token) {
                 setError('Non authentifié. Veuillez vous connecter pour voir vos signalements.');
@@ -80,42 +83,40 @@ export default function TicketsScreen() {
                 return;
             }
 
-            const backendBaseUrl = 'http://192.168.1.140:3000'; 
-            const apiUrl = `${backendBaseUrl}/api/tickets`;
+            // --- C'EST ICI LE CHANGEMENT CLÉ ---
+            // Utilisez apiService directement avec le chemin de l'endpoint
+            console.log(' Récupération des tickets via apiService depuis : /tickets');
 
-            console.log(' Récupération des tickets depuis :', apiUrl);
+            // apiService.baseURL est déjà 'http://localhost:3000/api' (ou 10.0.2.2 etc.)
+            // Donc, il suffit de passer '/tickets' à apiService.get()
+            const response = await apiService.get<RealTicket[]>('/tickets'); // Le type générique pour la réponse
 
-            const response = await fetch(apiUrl, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                console.error('Erreur réponse backend lors de la récupération des tickets :', data);
-                throw new Error(data.message || `Échec de la récupération des signalements (code: ${response.status}).`);
-            }
+            const data = response.data; // Avec Axios, les données sont dans .data
 
             console.log(' Signalements reçus :', data);
             setTickets(data);
 
         } catch (err: any) {
             console.error(' Erreur lors du chargement des signalements :', err);
-            setError(err.message || 'Impossible de charger vos signalements.');
-            if (err.message.includes('Non authentifié') || err.message.includes('Token invalide')) {
+            // Axios met l'objet réponse d'erreur dans err.response
+            // L'erreur réseau (TypeError) sera dans err.message
+            let errorMessage = err.message || 'Impossible de charger vos signalements.';
+            if (err.response && err.response.data && err.response.data.message) {
+                errorMessage = err.response.data.message;
+            } else if (err.response && err.response.status) {
+                errorMessage = `Échec de la récupération des signalements (code: ${err.response.status}).`;
+            }
+
+            setError(errorMessage);
+            if (errorMessage.includes('Non authentifié') || errorMessage.includes('Token invalide') || err.response?.status === 401 || err.response?.status === 403) {
                 authService.logout();
             }
         } finally {
-            setIsLoading(false);      
-            setIsRefreshing(false);   
+            setIsLoading(false);
+            setIsRefreshing(false);
         }
     };
 
-  
     useFocusEffect(
         useCallback(() => {
             console.log("TicketsScreen est focusé, rafraîchissement des données...");
@@ -123,27 +124,26 @@ export default function TicketsScreen() {
             fetchTickets(shouldShowLoader);
 
             return () => {
-                
                 console.log("TicketsScreen perd le focus.");
             };
-        }, [tickets.length, error]) 
+        }, [tickets.length, error])
     );
 
     // --- Fonction pour obtenir le mode de transport à afficher ---
     const getDisplayTransportMode = (apiMode: string, lineName: string): string => {
         switch (apiMode.toLowerCase()) {
             case 'rail':
-                    return 'RER';
-                
+                return 'RER';
+
             case 'metro':
                 return 'Métro';
             case 'bus':
                 return 'Bus';
             case 'tram':
                 return 'Tramway';
-            
+
             default:
-                return apiMode; 
+                return apiMode;
         }
     };
 
@@ -152,7 +152,7 @@ export default function TicketsScreen() {
         const ticketTypeIcon = typeIcons[item.type as keyof typeof typeIcons] || 'help-circle';
         const ticketStatusConfig = statusConfig[item.status] || { label: 'Inconnu', color: '#64748B', icon: 'help-circle' };
 
-        
+
         const displayTransportMode = getDisplayTransportMode(item.transportLine.transportmode, item.transportLine.name_line);
         const hasLinePicto = item.transportLine.colourweb_hexa && item.transportLine.shortname_line;
 
@@ -179,9 +179,9 @@ export default function TicketsScreen() {
                                         styles.linePictoText,
                                         { color: `#${item.transportLine.textcolourweb_hexa?.replace('#', '')}` || 'white' }
                                     ]}
-                                   
-                                    adjustsFontSizeToFit 
-                                    numberOfLines={1} 
+
+                                    adjustsFontSizeToFit
+                                    numberOfLines={1}
                                 >
                                     {item.transportLine.shortname_line || item.transportLine.name_line || 'N/A'}
                                 </Text>
@@ -197,15 +197,15 @@ export default function TicketsScreen() {
                         )}
 
                         <View style={styles.lineInfoContainer}>
-                 
+
                             <Text
                                 style={styles.lineName}
-                                numberOfLines={1} 
-                                ellipsizeMode="tail" 
+                                numberOfLines={1}
+                                ellipsizeMode="tail"
                             >
                                 {displayTransportMode} {item.transportLine.name_line || 'Ligne inconnue'}
                             </Text>
-                     
+
                         </View>
                     </View>
                     <View style={getStatusStyle(item.status)}>
@@ -215,18 +215,18 @@ export default function TicketsScreen() {
                     </View>
                 </View>
 
- 
+
                 <View style={styles.descriptionContainer}>
                     <Text
                         style={styles.descriptionText}
-                        numberOfLines={1} 
-                        ellipsizeMode="tail" 
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
                     >
                         {item.description}
                     </Text>
                 </View>
 
-              
+
                 <View style={styles.ticketFooter}>
                     <View style={styles.footerLeft}>
                         {/* <Ionicons
@@ -253,7 +253,7 @@ export default function TicketsScreen() {
         );
     };
 
-    //  Rendu principal du composant TicketsScreen 
+    //  Rendu principal du composant TicketsScreen
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.arrierePlan}>
@@ -261,16 +261,16 @@ export default function TicketsScreen() {
                 <View style={styles.formeDecorative2} />
                 <ScrollView
                     style={styles.scrollView}
-                
+
                     refreshControl={
                         <RefreshControl
                             refreshing={isRefreshing}
                             onRefresh={() => {
-                                setIsRefreshing(true); 
+                                setIsRefreshing(true);
                                 fetchTickets(false);
                             }}
-                            tintColor="#0EA5E9" 
-                            colors={['#0EA5E9']} 
+                            tintColor="#0EA5E9"
+                            colors={['#0EA5E9']}
                         />
                     }
                 >
@@ -279,8 +279,8 @@ export default function TicketsScreen() {
                         <Text style={styles.subtitle}>Suivez l'état de vos signalements</Text>
                     </View>
 
-                   
-                    {isLoading ? ( 
+
+                    {isLoading ? (
                         <View style={styles.messageContainer}>
                             <ActivityIndicator size="large" color="#0EA5E9" />
                             <Text style={styles.messageText}>Chargement de vos signalements...</Text>
@@ -293,13 +293,13 @@ export default function TicketsScreen() {
                                 <Text style={styles.retryButtonText}>Réessayer</Text>
                             </TouchableOpacity>
                         </View>
-                    ) : tickets.length === 0 ? ( 
+                    ) : tickets.length === 0 ? (
                         <View style={styles.messageContainer}>
                             <Ionicons name="clipboard-outline" size={50} color="#64748B" />
                             <Text style={styles.messageText}>Vous n'avez pas encore de signalements.</Text>
                             <Text style={styles.messageText}>Faites-en un pour commencer !</Text>
                         </View>
-                    ) : ( 
+                    ) : (
                         <View style={styles.ticketsContainer}>
                             {tickets.map((ticket) => renderTicketItem({ item: ticket }))}
                         </View>
@@ -309,7 +309,6 @@ export default function TicketsScreen() {
         </SafeAreaView>
     );
 }
-
 
 const styles = StyleSheet.create({
     container: {
@@ -470,7 +469,7 @@ const styles = StyleSheet.create({
     messageText: {
         marginTop: 10,
         fontSize: 16,
-        color: 'white',
+        color: 'black',
         textAlign: 'center',
         paddingHorizontal: 20,
     },

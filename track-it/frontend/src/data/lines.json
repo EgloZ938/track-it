@@ -1,0 +1,248 @@
+{
+    "total_count": 27,
+    "results": [
+        {
+            "id_line": "IDFM:C01730",
+            "shortname_line": "P",
+            "name_line": "P",
+            "transportmode": "Train",
+            "operatorname": "SNCF",
+            "colourweb_hexa": "#000000",
+            "textcolourweb_hexa": "#FFFFFF"
+        },
+        {
+            "id_line": "IDFM:C01731",
+            "shortname_line": "R",
+            "name_line": "R",
+            "transportmode": "Train",
+            "operatorname": "SNCF",
+            "colourweb_hexa": "#000000",
+            "textcolourweb_hexa": "#FFFFFF"
+        },
+        {
+            "id_line": "IDFM:C01736",
+            "shortname_line": "N",
+            "name_line": "N",
+            "transportmode": "Train",
+            "operatorname": "SNCF",
+            "colourweb_hexa": "#000000",
+            "textcolourweb_hexa": "#FFFFFF"
+        },
+        {
+            "id_line": "IDFM:C01737",
+            "shortname_line": "H",
+            "name_line": "H",
+            "transportmode": "Train",
+            "operatorname": "SNCF",
+            "colourweb_hexa": "#000000",
+            "textcolourweb_hexa": "#FFFFFF"
+        },
+        {
+            "id_line": "IDFM:C01738",
+            "shortname_line": "K",
+            "name_line": "K",
+            "transportmode": "Train",
+            "operatorname": "SNCF",
+            "colourweb_hexa": "#000000",
+            "textcolourweb_hexa": "#FFFFFF"
+        },
+        {
+            "id_line": "IDFM:C01739",
+            "shortname_line": "J",
+            "name_line": "J",
+            "transportmode": "Train",
+            "operatorname": "SNCF",
+            "colourweb_hexa": "#000000",
+            "textcolourweb_hexa": "#FFFFFF"
+        },
+        {
+            "id_line": "IDFM:C01740",
+            "shortname_line": "L",
+            "name_line": "L",
+            "transportmode": "Train",
+            "operatorname": "SNCF",
+            "colourweb_hexa": "#000000",
+            "textcolourweb_hexa": "#FFFFFF"
+        },
+        {
+            "id_line": "IDFM:C01741",
+            "shortname_line": "U",
+            "name_line": "U",
+            "transportmode": "Train",
+            "operatorname": "SNCF",
+            "colourweb_hexa": "#000000",
+            "textcolourweb_hexa": "#FFFFFF"
+        },
+        {
+            "id_line": "IDFM:C02711",
+            "shortname_line": "V",
+            "name_line": "V",
+            "transportmode": "Train",
+            "operatorname": "SNCF",
+            "colourweb_hexa": "#000000",
+            "textcolourweb_hexa": "#FFFFFF"
+        },
+        {
+            "id_line": "IDFM:C01744",
+            "shortname_line": "TER",
+            "name_line": "TER Centre - Val de Loire",
+            "transportmode": "Train",
+            "operatorname": "SNCF",
+            "colourweb_hexa": "#000000",
+            "textcolourweb_hexa": "#FFFFFF"
+        },
+        {
+            "id_line": "IDFM:C02368",
+            "shortname_line": "TER",
+            "name_line": "TER Centre - Val de Loire",
+            "transportmode": "Train",
+            "operatorname": "SNCF",
+            "colourweb_hexa": "#000000",
+            "textcolourweb_hexa": "#FFFFFF"
+        },
+        {
+            "id_line": "IDFM:C02375",
+            "shortname_line": "TER",
+            "name_line": "TER Normandie",
+            "transportmode": "Train",
+            "operatorname": "SNCF",
+            "colourweb_hexa": "#000000",
+            "textcolourweb_hexa": "#FFFFFF"
+        },
+        {
+            "id_line": "IDFM:C01380",
+            "shortname_line": "10",
+            "name_line": "10",
+            "transportmode": "Metro",
+            "operatorname": "RATP",
+            "colourweb_hexa": "#000000",
+            "textcolourweb_hexa": "#FFFFFF"
+        },
+        {
+            "id_line": "IDFM:C00728",
+            "shortname_line": "4",
+            "name_line": "4",
+            "transportmode": "Bus",
+            "operatorname": "RD Mantois",
+            "colourweb_hexa": "#000000",
+            "textcolourweb_hexa": "#FFFFFF"
+        },
+        {
+            "id_line": "IDFM:C00727",
+            "shortname_line": "5",
+            "name_line": "5",
+            "transportmode": "Bus",
+            "operatorname": "RD Mantois",
+            "colourweb_hexa": "#000000",
+            "textcolourweb_hexa": "#FFFFFF"
+        },
+        {
+            "id_line": "IDFM:C00921",
+            "shortname_line": "31S",
+            "name_line": "31S",
+            "transportmode": "Bus",
+            "operatorname": "Transdev Brie et 2 Morin",
+            "colourweb_hexa": "#000000",
+            "textcolourweb_hexa": "#FFFFFF"
+        },
+        {
+            "id_line": "IDFM:C00934",
+            "shortname_line": "49",
+            "name_line": "49",
+            "transportmode": "Bus",
+            "operatorname": "Transdev Brie et 2 Morin",
+            "colourweb_hexa": "#000000",
+            "textcolourweb_hexa": "#FFFFFF"
+        },
+        {
+            "id_line": "IDFM:C00925",
+            "shortname_line": "34S1",
+            "name_line": "34S1",
+            "transportmode": "Bus",
+            "operatorname": "Transdev Brie et 2 Morin",
+            "colourweb_hexa": "#000000",
+            "textcolourweb_hexa": "#FFFFFF"
+        },
+        {
+            "id_line": "IDFM:C01307",
+            "shortname_line": "367",
+            "name_line": "367",
+            "transportmode": "Bus",
+            "operatorname": "RATP",
+            "colourweb_hexa": "#000000",
+            "textcolourweb_hexa": "#FFFFFF"
+        },
+        {
+            "id_line": "IDFM:C01400",
+            "shortname_line": "N31",
+            "name_line": "N31",
+            "transportmode": "Bus",
+            "operatorname": "RATP",
+            "colourweb_hexa": "#000000",
+            "textcolourweb_hexa": "#FFFFFF"
+        },
+        {
+            "id_line": "IDFM:C01326",
+            "shortname_line": "485",
+            "name_line": "485",
+            "transportmode": "Bus",
+            "operatorname": "RATP",
+            "colourweb_hexa": "#000000",
+            "textcolourweb_hexa": "#FFFFFF"
+        },
+        {
+            "id_line": "IDFM:C02264",
+            "shortname_line": "20",
+            "name_line": "20",
+            "transportmode": "Bus",
+            "operatorname": "Keolis Argenteuil Boucles de Seine",
+            "colourweb_hexa": "#000000",
+            "textcolourweb_hexa": "#FFFFFF"
+        },
+        {
+            "id_line": "IDFM:C00330",
+            "shortname_line": "A",
+            "name_line": "A",
+            "transportmode": "Bus",
+            "operatorname": "Keolis Argenteuil Boucles de Seine",
+            "colourweb_hexa": "#000000",
+            "textcolourweb_hexa": "#FFFFFF"
+        },
+        {
+            "id_line": "IDFM:C00335",
+            "shortname_line": "C",
+            "name_line": "C",
+            "transportmode": "Bus",
+            "operatorname": "Keolis Argenteuil Boucles de Seine",
+            "colourweb_hexa": "#000000",
+            "textcolourweb_hexa": "#FFFFFF"
+        },
+        {
+            "id_line": "IDFM:C01634",
+            "shortname_line": "N130",
+            "name_line": "N130",
+            "transportmode": "Bus",
+            "operatorname": "Transdev Brie et 2 Morin",
+            "colourweb_hexa": "#000000",
+            "textcolourweb_hexa": "#FFFFFF"
+        },
+        {
+            "id_line": "IDFM:C00948",
+            "shortname_line": "R",
+            "name_line": "R",
+            "transportmode": "Bus",
+            "operatorname": "Transdev Marne-et-Ourcq",
+            "colourweb_hexa": "#000000",
+            "textcolourweb_hexa": "#FFFFFF"
+        },
+        {
+            "id_line": "IDFM:C00920",
+            "shortname_line": "31",
+            "name_line": "31",
+            "transportmode": "Bus",
+            "operatorname": "Transdev Brie et 2 Morin",
+            "colourweb_hexa": "#000000",
+            "textcolourweb_hexa": "#FFFFFF"
+        }
+    ]
+}

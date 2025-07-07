@@ -1,0 +1,516 @@
+{
+    "total_count": 52,
+    "results": [
+        {
+            "id_line": "IDFM:C01730",
+            "id_stop_point": "IDFM:monomodalStopPlace:47171",
+            "name_stop_point": "Sainte-Colombe Septveilles",
+            "coord_x": "3.2553403241826864",
+            "coord_y": "48.52915312687445"
+        },
+        {
+            "id_line": "IDFM:C01730",
+            "id_stop_point": "IDFM:monomodalStopPlace:47325",
+            "name_stop_point": "Montry - Condé",
+            "coord_x": "2.8256554095986797",
+            "coord_y": "48.891071946593115"
+        },
+        {
+            "id_line": "IDFM:C01730",
+            "id_stop_point": "IDFM:monomodalStopPlace:411378",
+            "name_stop_point": "Château-Thierry",
+            "coord_x": "3.409522741444065",
+            "coord_y": "49.037933505433955"
+        },
+        {
+            "id_line": "IDFM:C01730",
+            "id_stop_point": "IDFM:monomodalStopPlace:47928",
+            "name_stop_point": "Changis - Saint-Jean",
+            "coord_x": "3.026089283734262",
+            "coord_y": "48.95916631326023"
+        },
+        {
+            "id_line": "IDFM:C01730",
+            "id_stop_point": "IDFM:monomodalStopPlace:47962",
+            "name_stop_point": "Trilport",
+            "coord_x": "2.949685912410061",
+            "coord_y": "48.96016915361593"
+        },
+        {
+            "id_line": "IDFM:C01730",
+            "id_stop_point": "IDFM:monomodalStopPlace:47205",
+            "name_stop_point": "Guérard - La Celle-sur-Morin",
+            "coord_x": "2.9538116993768355",
+            "coord_y": "48.81076877713248"
+        },
+        {
+            "id_line": "IDFM:C01730",
+            "id_stop_point": "IDFM:monomodalStopPlace:47942",
+            "name_stop_point": "Mortcerf",
+            "coord_x": "2.9074760676708205",
+            "coord_y": "48.789592035371314"
+        },
+        {
+            "id_line": "IDFM:C01730",
+            "id_stop_point": "IDFM:monomodalStopPlace:43131",
+            "name_stop_point": "Gretz-Armainvilliers",
+            "coord_x": "2.727167738339898",
+            "coord_y": "48.74645539980236"
+        },
+        {
+            "id_line": "IDFM:C01730",
+            "id_stop_point": "IDFM:monomodalStopPlace:470519",
+            "name_stop_point": "Gare de l'Est",
+            "coord_x": "2.360305141171757",
+            "coord_y": "48.87857171221123"
+        },
+        {
+            "id_line": "IDFM:C01730",
+            "id_stop_point": "IDFM:monomodalStopPlace:47943",
+            "name_stop_point": "Mouroux",
+            "coord_x": "3.0430626039871616",
+            "coord_y": "48.813701725231546"
+        },
+        {
+            "id_line": "IDFM:C01730",
+            "id_stop_point": "IDFM:monomodalStopPlace:47910",
+            "name_stop_point": "Coulommiers",
+            "coord_x": "3.0812613115733436",
+            "coord_y": "48.80805936234078"
+        },
+        {
+            "id_line": "IDFM:C01731",
+            "id_stop_point": "IDFM:monomodalStopPlace:43218",
+            "name_stop_point": "Vernou-sur-Seine",
+            "coord_x": "2.8421499951400837",
+            "coord_y": "48.38667549692297"
+        },
+        {
+            "id_line": "IDFM:C01731",
+            "id_stop_point": "IDFM:monomodalStopPlace:43144",
+            "name_stop_point": "La Grande-Paroisse",
+            "coord_x": "2.896902458012003",
+            "coord_y": "48.37863280606578"
+        },
+        {
+            "id_line": "IDFM:C01731",
+            "id_stop_point": "IDFM:monomodalStopPlace:411488",
+            "name_stop_point": "Ferrières - Fontenay",
+            "coord_x": "2.7720920761530037",
+            "coord_y": "48.09588996416835"
+        },
+        {
+            "id_line": "IDFM:C01731",
+            "id_stop_point": "IDFM:monomodalStopPlace:47909",
+            "name_stop_point": "Melun",
+            "coord_x": "2.65469836071817",
+            "coord_y": "48.527491277248295"
+        },
+        {
+            "id_line": "IDFM:C01736",
+            "id_stop_point": "IDFM:monomodalStopPlace:47944",
+            "name_stop_point": "Nézel - Aulnay",
+            "coord_x": "1.8404153320794885",
+            "coord_y": "48.93882932493657"
+        },
+        {
+            "id_line": "IDFM:C01736",
+            "id_stop_point": "IDFM:monomodalStopPlace:461504",
+            "name_stop_point": "Saint-Quentin en Yvelines - Montigny-le-Bretonneux",
+            "coord_x": "2.044615988930814",
+            "coord_y": "48.78748491597792"
+        },
+        {
+            "id_line": "IDFM:C01736",
+            "id_stop_point": "IDFM:monomodalStopPlace:43229",
+            "name_stop_point": "Les Essarts-le-Roi",
+            "coord_x": "1.8896613918946876",
+            "coord_y": "48.721693353095276"
+        },
+        {
+            "id_line": "IDFM:C01736",
+            "id_stop_point": "IDFM:monomodalStopPlace:43219",
+            "name_stop_point": "Versailles Chantiers",
+            "coord_x": "2.1349078603373464",
+            "coord_y": "48.79526039893613"
+        },
+        {
+            "id_line": "IDFM:C01736",
+            "id_stop_point": "IDFM:monomodalStopPlace:46847",
+            "name_stop_point": "Gare de Villiers Neauphle Pontchartrain",
+            "coord_x": "1.8775357849413559",
+            "coord_y": "48.81532337552301"
+        },
+        {
+            "id_line": "IDFM:C01736",
+            "id_stop_point": "IDFM:monomodalStopPlace:47903",
+            "name_stop_point": "Garancières - La Queue",
+            "coord_x": "1.7645793224017485",
+            "coord_y": "48.810463686279576"
+        },
+        {
+            "id_line": "IDFM:C01736",
+            "id_stop_point": "IDFM:monomodalStopPlace:47921",
+            "name_stop_point": "Orgerus - Béhoust",
+            "coord_x": "1.7030300359022215",
+            "coord_y": "48.82662740630846"
+        },
+        {
+            "id_line": "IDFM:C01736",
+            "id_stop_point": "IDFM:monomodalStopPlace:411492",
+            "name_stop_point": "Dreux",
+            "coord_x": "1.3704314171005363",
+            "coord_y": "48.731106368847485"
+        },
+        {
+            "id_line": "IDFM:C01737",
+            "id_stop_point": "IDFM:monomodalStopPlace:43206",
+            "name_stop_point": "Taverny",
+            "coord_x": "2.222287008769188",
+            "coord_y": "49.024976382846596"
+        },
+        {
+            "id_line": "IDFM:C01737",
+            "id_stop_point": "IDFM:monomodalStopPlace:47595",
+            "name_stop_point": "Pont Petit",
+            "coord_x": "2.131241645234573",
+            "coord_y": "49.06087605161007"
+        },
+        {
+            "id_line": "IDFM:C01737",
+            "id_stop_point": "IDFM:monomodalStopPlace:43178",
+            "name_stop_point": "Persan - Beaumont",
+            "coord_x": "2.2777997330536137",
+            "coord_y": "49.147582944600785"
+        },
+        {
+            "id_line": "IDFM:C01738",
+            "id_stop_point": "IDFM:monomodalStopPlace:462394",
+            "name_stop_point": "Gare du Nord",
+            "coord_x": "2.356693437528564",
+            "coord_y": "48.88230685842714"
+        },
+        {
+            "id_line": "IDFM:C01738",
+            "id_stop_point": "IDFM:monomodalStopPlace:43164",
+            "name_stop_point": "Mitry - Claye",
+            "coord_x": "2.6422341369736606",
+            "coord_y": "48.9757479508066"
+        },
+        {
+            "id_line": "IDFM:C01739",
+            "id_stop_point": "IDFM:monomodalStopPlace:43137",
+            "name_stop_point": "Juziers",
+            "coord_x": "1.8449525722587152",
+            "coord_y": "48.99224048747195"
+        },
+        {
+            "id_line": "IDFM:C01739",
+            "id_stop_point": "IDFM:monomodalStopPlace:46897",
+            "name_stop_point": "Meulan - Hardricourt",
+            "coord_x": "1.9021289902435004",
+            "coord_y": "49.00581615609435"
+        },
+        {
+            "id_line": "IDFM:C01739",
+            "id_stop_point": "IDFM:monomodalStopPlace:47916",
+            "name_stop_point": "Andrésy",
+            "coord_x": "2.0486677678528",
+            "coord_y": "48.974620752632916"
+        },
+        {
+            "id_line": "IDFM:C01739",
+            "id_stop_point": "IDFM:monomodalStopPlace:47964",
+            "name_stop_point": "Vernouillet - Verneuil",
+            "coord_x": "1.9829377621754614",
+            "coord_y": "48.981645855003116"
+        },
+        {
+            "id_line": "IDFM:C01739",
+            "id_stop_point": "IDFM:monomodalStopPlace:43191",
+            "name_stop_point": "Sartrouville",
+            "coord_x": "2.1572200388507317",
+            "coord_y": "48.93769529363442"
+        },
+        {
+            "id_line": "IDFM:C01739",
+            "id_stop_point": "IDFM:monomodalStopPlace:43082",
+            "name_stop_point": "Houilles - Carrières-sur-Seine",
+            "coord_x": "2.1851757042018707",
+            "coord_y": "48.92034757911033"
+        },
+        {
+            "id_line": "IDFM:C01739",
+            "id_stop_point": "IDFM:monomodalStopPlace:411345",
+            "name_stop_point": "Chaumont-en-Vexin",
+            "coord_x": "1.8732362595841847",
+            "coord_y": "49.26118959499568"
+        },
+        {
+            "id_line": "IDFM:C01739",
+            "id_stop_point": "IDFM:monomodalStopPlace:47922",
+            "name_stop_point": "Us",
+            "coord_x": "1.9705444983242866",
+            "coord_y": "49.09955483034093"
+        },
+        {
+            "id_line": "IDFM:C01739",
+            "id_stop_point": "IDFM:monomodalStopPlace:44161",
+            "name_stop_point": "Montgeroult - Courcelles",
+            "coord_x": "2.0029460458068105",
+            "coord_y": "49.080811910011626"
+        },
+        {
+            "id_line": "IDFM:C01739",
+            "id_stop_point": "IDFM:monomodalStopPlace:43212",
+            "name_stop_point": "Val d'Argenteuil",
+            "coord_x": "2.2326940500534516",
+            "coord_y": "48.95065749524003"
+        },
+        {
+            "id_line": "IDFM:C01739",
+            "id_stop_point": "IDFM:monomodalStopPlace:51238",
+            "name_stop_point": "Bois-Colombes",
+            "coord_x": "2.2716490888242244",
+            "coord_y": "48.91419560591249"
+        },
+        {
+            "id_line": "IDFM:C01740",
+            "id_stop_point": "IDFM:monomodalStopPlace:43216",
+            "name_stop_point": "Vaucresson",
+            "coord_x": "2.152674671677768",
+            "coord_y": "48.836684490249404"
+        },
+        {
+            "id_line": "IDFM:C01740",
+            "id_stop_point": "IDFM:monomodalStopPlace:47770",
+            "name_stop_point": "Garches - Marnes-la-Coquette",
+            "coord_x": "2.187092668770097",
+            "coord_y": "48.838254440887944"
+        },
+        {
+            "id_line": "IDFM:C01740",
+            "id_stop_point": "IDFM:monomodalStopPlace:43170",
+            "name_stop_point": "Nanterre Université",
+            "coord_x": "2.213536495127317",
+            "coord_y": "48.90112974604822"
+        },
+        {
+            "id_line": "IDFM:C01740",
+            "id_stop_point": "IDFM:monomodalStopPlace:43118",
+            "name_stop_point": "Courbevoie",
+            "coord_x": "2.249189818087758",
+            "coord_y": "48.89861561377405"
+        },
+        {
+            "id_line": "IDFM:C01741",
+            "id_stop_point": "IDFM:monomodalStopPlace:43205",
+            "name_stop_point": "Suresnes Mont Valérien",
+            "coord_x": "2.2210567895582143",
+            "coord_y": "48.871689522026664"
+        },
+        {
+            "id_line": "IDFM:C01741",
+            "id_stop_point": "IDFM:monomodalStopPlace:43241",
+            "name_stop_point": "Chaville Rive Droite",
+            "coord_x": "2.1885894806735937",
+            "coord_y": "48.81299614830529"
+        },
+        {
+            "id_line": "IDFM:C01741",
+            "id_stop_point": "IDFM:monomodalStopPlace:43219",
+            "name_stop_point": "Versailles Chantiers",
+            "coord_x": "2.1349078603373464",
+            "coord_y": "48.79526039893613"
+        },
+        {
+            "id_line": "IDFM:C01741",
+            "id_stop_point": "IDFM:monomodalStopPlace:461504",
+            "name_stop_point": "Saint-Quentin en Yvelines - Montigny-le-Bretonneux",
+            "coord_x": "2.044615988930814",
+            "coord_y": "48.78748491597792"
+        },
+        {
+            "id_line": "IDFM:C01741",
+            "id_stop_point": "IDFM:monomodalStopPlace:43147",
+            "name_stop_point": "La Verrière",
+            "coord_x": "1.943057018064192",
+            "coord_y": "48.7551716132828"
+        },
+        {
+            "id_line": "IDFM:C02711",
+            "id_stop_point": "IDFM:monomodalStopPlace:43091",
+            "name_stop_point": "Bièvres",
+            "coord_x": "2.2161603396773564",
+            "coord_y": "48.75087243760775"
+        },
+        {
+            "id_line": "IDFM:C01744",
+            "id_stop_point": "IDFM:monomodalStopPlace:59302",
+            "name_stop_point": "Maintenon",
+            "coord_x": "1.5926330908061617",
+            "coord_y": "48.586256682993294"
+        },
+        {
+            "id_line": "IDFM:C01744",
+            "id_stop_point": "IDFM:472592",
+            "name_stop_point": "Chartres",
+            "coord_x": "1.4806350241915214",
+            "coord_y": "48.44829799670239"
+        },
+        {
+            "id_line": "IDFM:C02368",
+            "id_stop_point": "IDFM:monomodalStopPlace:479035",
+            "name_stop_point": "Paris-Bercy Bourgogne - Pays d'Auvergne",
+            "coord_x": "2.384209720351069",
+            "coord_y": "48.83858620193177"
+        },
+        {
+            "id_line": "IDFM:C02368",
+            "id_stop_point": "IDFM:monomodalStopPlace:479024",
+            "name_stop_point": "Saint-Mard",
+            "coord_x": "2.6991773673106705",
+            "coord_y": "49.032284416059525"
+        },
+        {
+            "id_line": "IDFM:C02375",
+            "id_stop_point": "IDFM:470860",
+            "name_stop_point": "Mantes-la-Jolie",
+            "coord_x": "1.7038853443423192",
+            "coord_y": "48.98891990531871"
+        },
+        {
+            "id_line": "IDFM:C02375",
+            "id_stop_point": "IDFM:470761",
+            "name_stop_point": "Mantes-la-Jolie",
+            "coord_x": "1.7038853443423192",
+            "coord_y": "48.98891990531871"
+        },
+        {
+            "id_line": "IDFM:C01380",
+            "id_stop_point": "IDFM:21907",
+            "name_stop_point": "Michel-Ange - Auteuil",
+            "coord_x": "2.263989525333329",
+            "coord_y": "48.84797535417627"
+        },
+        {
+            "id_line": "IDFM:C01380",
+            "id_stop_point": "IDFM:21974",
+            "name_stop_point": "Porte d'Auteuil",
+            "coord_x": "2.2582639186231943",
+            "coord_y": "48.8472535417627"
+        },
+        {
+            "id_line": "IDFM:C00728",
+            "id_stop_point": "IDFM:484082",
+            "name_stop_point": "Bonnières-sur-Seine Gare routière - Quai 4",
+            "coord_x": "1.5797258962484515",
+            "coord_y": "49.038695502083186"
+        },
+        {
+            "id_line": "IDFM:C00728",
+            "id_stop_point": "IDFM:18491",
+            "name_stop_point": "Freneuse",
+            "coord_x": "1.5976164632036616",
+            "coord_y": "49.036720426739755"
+        },
+        {
+            "id_line": "IDFM:C00727",
+            "id_stop_point": "IDFM:18577",
+            "name_stop_point": "Foyer Rural",
+            "coord_x": "1.5443676145725336",
+            "coord_y": "49.0605840622373"
+        },
+        {
+            "id_line": "IDFM:C00727",
+            "id_stop_point": "IDFM:18517",
+            "name_stop_point": "Bois de Merville",
+            "coord_x": "1.5461383033507057",
+            "coord_y": "49.05581895697666"
+        },
+        {
+            "id_line": "IDFM:C00921",
+            "id_stop_point": "IDFM:12612",
+            "name_stop_point": "Madeleine",
+            "coord_x": "3.1490055824766015",
+            "coord_y": "48.97305988591873"
+        },
+        {
+            "id_line": "IDFM:C00934",
+            "id_stop_point": "IDFM:484748",
+            "name_stop_point": "Domaine de Tanqueux",
+            "coord_x": "3.136893587876761",
+            "coord_y": "48.96755280491933"
+        },
+        {
+            "id_line": "IDFM:C00925",
+            "id_stop_point": "IDFM:6676",
+            "name_stop_point": "Place",
+            "coord_x": "3.1962822086643623",
+            "coord_y": "48.9034340"
+        },
+        {
+            "id_line": "IDFM:C01307",
+            "id_stop_point": "IDFM:24382",
+            "name_stop_point": "Periparc",
+            "coord_x": "2.2189542195938",
+            "coord_y": "48.91598603274749"
+        },
+        {
+            "id_line": "IDFM:C01400",
+            "id_stop_point": "IDFM:39783",
+            "name_stop_point": "Le Cor de Chasse - La Belle Epine",
+            "coord_x": "2.368789414821278",
+            "coord_y": "48.759606337447565"
+        },
+        {
+            "id_line": "IDFM:C01326",
+            "id_stop_point": "IDFM:8385",
+            "name_stop_point": "Place de l'Eglise",
+            "coord_x": "2.389478224838934",
+            "coord_y": "48.708661405253864"
+        },
+        {
+            "id_line": "IDFM:C02264",
+            "id_stop_point": "IDFM:34461",
+            "name_stop_point": "Liberté",
+            "coord_x": "2.115613643606352",
+            "coord_y": "48.8922356"
+        },
+        {
+            "id_line": "IDFM:C00330",
+            "id_stop_point": "IDFM:32246",
+            "name_stop_point": "Maréchal Juin",
+            "coord_x": "2.1800577459389823",
+            "coord_y": "48.91129247478597"
+        },
+        {
+            "id_line": "IDFM:C00335",
+            "id_stop_point": "IDFM:23940",
+            "name_stop_point": "Gandillet",
+            "coord_x": "2.1812056969865856",
+            "coord_y": "48.917244845560845"
+        },
+        {
+            "id_line": "IDFM:C01634",
+            "id_stop_point": "IDFM:413034",
+            "name_stop_point": "Friedberg",
+            "coord_x": "2.5396298509025423",
+            "coord_y": "48.83020634218599"
+        },
+        {
+            "id_line": "IDFM:C00948",
+            "id_stop_point": "IDFM:10732",
+            "name_stop_point": "Guillaume Apollinaire",
+            "coord_x": "3.022330580624422",
+            "coord_y": "49.03079782772044"
+        },
+        {
+            "id_line": "IDFM:C00920",
+            "id_stop_point": "IDFM:10668",
+            "name_stop_point": "Ecole Fauvet",
+            "coord_x": "3.124243828120743",
+            "coord_y": "48.96079535031826"
+        }
+    ]
+}
