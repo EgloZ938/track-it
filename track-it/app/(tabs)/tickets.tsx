@@ -89,7 +89,7 @@ export default function TicketsScreen() {
 
             // apiService.baseURL est déjà 'http://localhost:3000/api' (ou 10.0.2.2 etc.)
             // Donc, il suffit de passer '/tickets' à apiService.get()
-            const response = await apiService.get<RealTicket[]>('/tickets'); // Le type générique pour la réponse
+            const response = await apiService.get<RealTicket[]>('/tickets'); 
 
             const data = response.data; // Avec Axios, les données sont dans .data
 

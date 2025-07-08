@@ -62,7 +62,7 @@ export default function TicketDetailScreen() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    const backendBaseUrl = 'http://192.168.1.140:3000'; // VÉRIFIEZ CETTE URL !
+    const backendBaseUrl = 'http://192.168.1.13:3000'; 
 
     useEffect(() => {
         const fetchTicketDetails = async () => {
@@ -287,6 +287,15 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#0F172A',
     },
+
+    backgroundShapes: {
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+},
+ 
     arrierePlan: {
         flex: 1,
         position: 'relative',

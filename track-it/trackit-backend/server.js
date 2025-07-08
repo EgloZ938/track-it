@@ -96,6 +96,57 @@ const ticketSchema = new mongoose.Schema({
     
 });
 
+// Nouveau Schéma pour les Tickets de Retard
+const delayTicketSchema = new mongoose.Schema({
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true,
+    },
+    transportLine: {
+        id_line: { type: String, required: true },
+        shortname_line: { type: String },
+        name_line: { type: String, required: true },
+        transportmode: { type: String, required: true },
+        operatorname: { type: String },
+        colourweb_hexa: { type: String },
+        textcolourweb_hexa: { type: String },
+    },
+    stopPoint: {
+        id_stop_point: { type: String, required: true },
+        name_stop_point: { type: String, required: true },
+        coord_x: { type: Number, required: true },
+        coord_y: { type: Number, required: true },
+    },
+    description: {
+        type: String,
+        required: true,
+    },
+    location: { // Lieu où l'utilisateur a déclaré le retard
+        latitude: { type: Number, required: true },
+        longitude: { type: Number, required: true },
+    },
+    distanceFromStop: { // La distance calculée depuis l'arrêt (pour information)
+        type: Number,
+        required: true,
+    },
+    status: {
+        type: String,
+        enum: ['pending', 'in_progress', 'resolved'],
+        default: 'pending',
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now,
+    },
+    updatedAt: {
+        type: Date,
+        default: Date.now,
+    },
+});
+
+
+const DelayTicket = mongoose.model('DelayTicket', delayTicketSchema);
 const User = mongoose.model('User', userSchema);
 const Ticket = mongoose.model('Ticket', ticketSchema);
 
@@ -477,6 +528,77 @@ app.get('/api/tickets/:id', async (req, res) => {
         res.status(500).json({ message: 'Erreur serveur', error: error.message });
     }
 });
+
+
+// --- Routes pour les Tickets de Retard ---
+
+// Créer un nouveau ticket de retard
+app.post('/api/delaytickets', authenticateToken, async (req, res) => {
+    try {
+        const { transportLine, stopPoint, description, location, distanceFromStop } = req.body;
+
+        // Validation simple des données reçues
+        if (!transportLine || !stopPoint || !description || !location || distanceFromStop === undefined) {
+            return res.status(400).json({ message: 'Tous les champs du ticket de retard sont requis.' });
+        }
+
+        const delayTicket = new DelayTicket({
+            userId: req.user.userId,
+            transportLine,
+            stopPoint,
+            description,
+            location,
+            distanceFromStop,
+        });
+
+        await delayTicket.save();
+
+        res.status(201).json({
+            message: 'Ticket de retard créé avec succès',
+            delayTicket,
+        });
+    } catch (error) {
+        console.error('Erreur lors de la création du ticket de retard:', error);
+        res.status(500).json({ message: 'Erreur serveur lors de la création du ticket de retard.' });
+    }
+});
+
+// Récupérer tous les tickets de retard de l'utilisateur authentifié
+app.get('/api/delaytickets', authenticateToken, async (req, res) => {
+    try {
+        const delayTickets = await DelayTicket.find({ userId: req.user.userId })
+            .sort({ createdAt: -1 }); // Tri par le plus récent
+
+        res.json(delayTickets);
+    } catch (error) {
+        console.error('Erreur lors de la récupération des tickets de retard de l\'utilisateur:', error);
+        res.status(500).json({ message: 'Erreur serveur lors de la récupération des tickets de retard.' });
+    }
+});
+
+// Récupérer un ticket de retard spécifique par son ID
+app.get('/api/delaytickets/:id', authenticateToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const delayTicket = await DelayTicket.findById(id);
+
+        if (!delayTicket) {
+            return res.status(404).json({ message: 'Ticket de retard non trouvé' });
+        }
+
+        // Optionnel : Vérifier que l'utilisateur est le propriétaire du ticket si vous voulez restreindre l'accès
+        if (delayTicket.userId.toString() !== req.user.userId) {
+             return res.status(403).json({ message: 'Accès non autorisé à ce ticket de retard' });
+        }
+
+        res.status(200).json(delayTicket);
+    } catch (error) {
+        console.error('Erreur lors de la récupération du ticket de retard:', error);
+        res.status(500).json({ message: 'Erreur serveur lors de la récupération du ticket de retard.' });
+    }
+});
+
+
 
 // Démarrer le serveur
 app.listen(PORT, () => {
